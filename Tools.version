@@ -1,0 +1,13 @@
+<Version>
+	<Files>
+		<File>Hammer/Properties/AssemblyInfo.cs</File>
+		<File>Buckle//Properties/AssemblyInfo.cs</File>
+		<File>Hammer/Properties/AssemblyInfo.cs</File>
+		<File>Chisel/Properties/AssemblyInfo.cs</File>
+	</Files>
+	<Major>2</Major>
+	<Minor>0</Minor>
+	<Revision>0</Revision>
+	<Build>0</Build>
+	<StartYear>2013</StartYear>
+</Version>
