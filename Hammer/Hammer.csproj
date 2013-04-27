@@ -47,5 +47,6 @@
   <ItemGroup>
     <None Include="Test\GenTestFiles.sh" />
     <None Include="Test\GenTestFiles.cs" />
+    <None Include="hammer" />
   </ItemGroup>
 </Project>

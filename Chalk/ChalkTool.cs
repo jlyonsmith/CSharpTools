@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Chalk
+namespace Chisel
 {
 	public class ChalkTool
 	{
@@ -441,7 +441,8 @@ Arguments:
 				throw new ApplicationException(string.Format("Argument {0} has already been set", arg[1]));
 			}
 		}
-		private void WriteError(string format, params object[] args)
+
+        private void WriteError(string format, params object[] args)
 		{
 			Console.Write("error: ");
 			Console.WriteLine(format, args);

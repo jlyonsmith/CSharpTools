@@ -14,12 +14,15 @@ namespace Hammer
     {
         public enum LineEnding
         {
-            Auto,
-            Cr,
-            Lf,
-            CrLf,
+            Auto
+,
+            Cr
+,
+            Lf
+,
+            CrLf
+,
         }
-
         #region Fields
         public string InputFileName;
         public string OutputFileName;
@@ -28,14 +31,12 @@ namespace Hammer
         public bool ShowUsage;
 
         public bool HasOutputErrors { get; set; }
-        
         #endregion
         
         #region Constructors
         public HammerTool()
         {
         }
-        
         #endregion      
         
         #region Methods
@@ -44,7 +45,7 @@ namespace Hammer
             if (!NoLogo)
             {
                 string version = ((AssemblyFileVersionAttribute)Assembly.GetExecutingAssembly()
-                                  .GetCustomAttributes(typeof(AssemblyFileVersionAttribute), true) [0]).Version;
+                                  .GetCustomAttributes(typeof(AssemblyFileVersionAttribute), true)[0]).Version;
                 
                 WriteMessage("Hammer text line ending fixer. Version {0}", version);
                 WriteMessage("Copyright (c) 2012, John Lyon-Smith." + Environment.NewLine);
@@ -62,8 +63,7 @@ Arguments:
     [-f:<line-endings>]      Fix line endings to be cr, lf, crlf or auto.
     [-q]                     Suppress logo.
     [-h] or [-?]             Show help.
-"
-                );
+");
                 return;
             }
 
@@ -88,22 +88,20 @@ Arguments:
 
             for (int i = 0; i < fileContents.Length; i++)
             {
-                char c = fileContents [i];
-                char c1 = (i < fileContents.Length - 1 ? fileContents [i + 1] : '\0');
+                char c = fileContents[i];
 
                 if (c == '\r')
                 {
-                    if (c1 == '\n')
+                    if (i < fileContents.Length - 1 && fileContents[i + 1] == '\n')
                     {
                         numCrLf++;
                         i++;
-                        numLines++;
                     }
                     else
                     {
                         numCr++;
-                        numLines++;
                     }
+                    numLines++;
                 }
                 else if (c == '\n')
                 {
@@ -112,24 +110,24 @@ Arguments:
                 }
             }
 
+            int numEndings = 
+                (numCr > 0 ? 1 : 0) + (numLf > 0 ? 1 : 0) + (numCrLf > 0 ? 1 : 0);
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendFormat("\"{0}\", lines={1}, cr={2}, lf={3}, crlf={4}", this.InputFileName, numLines, numCr, numLf, numCrLf);
+            sb.AppendFormat(
+                "\"{0}\", lines={1}, cr={2}, lf={3}, crlf={4} {5}", 
+                this.InputFileName, numLines, numCr, numLf, numCrLf, numEndings > 1 ? ", mixed" : "");
 
             if (!FixedEndings.HasValue)
             {
                 WriteMessage(sb.ToString());
                 return;
             }
-            
-            LineEnding autoLineEnding = LineEnding.Auto;
-            int n = 0;
 
-            if (numLf > n)
-            {
-                autoLineEnding = LineEnding.Lf;
-                n = numLf;
-            }
+            // Find the most common line ending and make that the automatic line ending
+            LineEnding autoLineEnding = LineEnding.Lf;
+            int n = numLf;
+
             if (numCrLf > n)
             {
                 autoLineEnding = LineEnding.CrLf;
@@ -154,12 +152,11 @@ Arguments:
             {
                 for (int i = 0; i < fileContents.Length; i++)
                 {
-                    char c = fileContents [i];
-                    char c1 = (i < fileContents.Length - 1 ? fileContents [i + 1] : '\0');
+                    char c = fileContents[i];
 
                     if (c == '\r')
                     {
-                        if (c1 == '\n')
+                        if (i < fileContents.Length - 1 && fileContents[i + 1] == '\n')
                         {
                             i++;
                         }
@@ -196,25 +193,25 @@ Arguments:
             {
                 if (arg.StartsWith("-"))
                 {
-                    switch (arg [1])
+                    switch (arg[1])
                     {
-                        case 'h':
-                        case '?':
-                            ShowUsage = true;
-                            return;
-                        case 'q':
-                            NoLogo = true;
-                            continue;
-                        case 'o':
-                            CheckAndSetArgument(arg, ref OutputFileName); 
-                            continue;
-                        case 'f':
-                            string lineEndings = (FixedEndings.HasValue ? FixedEndings.Value.ToString() : null);
-                            CheckAndSetArgument(arg, ref lineEndings); 
-                            FixedEndings = (LineEnding)Enum.Parse(typeof(LineEnding), lineEndings, true);
-                            break;
-                        default:
-                            throw new ApplicationException(string.Format("Unknown argument '{0}'", arg [1]));
+                    case 'h':
+                    case '?':
+                        ShowUsage = true;
+                        return;
+                    case 'q':
+                        NoLogo = true;
+                        continue;
+                    case 'o':
+                        CheckAndSetArgument(arg, ref OutputFileName); 
+                        continue;
+                    case 'f':
+                        string lineEndings = (FixedEndings.HasValue ? FixedEndings.Value.ToString() : null);
+                        CheckAndSetArgument(arg, ref lineEndings); 
+                        FixedEndings = (LineEnding)Enum.Parse(typeof(LineEnding), lineEndings, true);
+                        break;
+                    default:
+                        throw new ApplicationException(string.Format("Unknown argument '{0}'", arg[1]));
                     }
                 }
                 else if (String.IsNullOrEmpty(InputFileName))
@@ -227,12 +224,12 @@ Arguments:
                 }
             }
         }
-        
+
         private void CheckAndSetArgument(string arg, ref string val)
         {
-            if (arg [2] != ':')
+            if (arg[2] != ':')
             {
-                throw new ApplicationException(string.Format("Argument {0} is missing a colon", arg [1]));
+                throw new ApplicationException(string.Format("Argument {0} is missing a colon", arg[1]));
             }
             
             if (string.IsNullOrEmpty(val))
@@ -241,29 +238,28 @@ Arguments:
             }
             else
             {
-                throw new ApplicationException(string.Format("Argument {0} has already been set", arg [1]));
+                throw new ApplicationException(string.Format("Argument {0} has already been set", arg[1]));
             }
         }
-        
+
         private void WriteError(string format, params object[] args)
         {
             Console.Write("error: ");
             Console.WriteLine(format, args);
             this.HasOutputErrors = true;
         }
-        
+
         private void WriteWarning(string format, params object[] args)
         {
             Console.Write("warning: ");
             Console.WriteLine(format, args);
             this.HasOutputErrors = true;
         }
-        
+
         private void WriteMessage(string format, params object[] args)
         {
             Console.WriteLine(format, args);
         }
-        
         #endregion
     }
 }

@@ -1,6 +1,6 @@
 using System;
 
-namespace Chalk.MacOS
+namespace Chisel.MacOS
 {
 	class MainClass
 	{
