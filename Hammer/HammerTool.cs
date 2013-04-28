@@ -73,6 +73,12 @@ Arguments:
                 return;
             }
 
+            if (!File.Exists(InputFileName))
+            {
+                WriteError("The file '{0}' does not exist", InputFileName);
+                return;
+            }
+
             if (OutputFileName == null)
             {
                 OutputFileName = InputFileName;
@@ -124,65 +130,79 @@ Arguments:
                 return;
             }
 
-            // Find the most common line ending and make that the automatic line ending
-            LineEnding autoLineEnding = LineEnding.Lf;
-            int n = numLf;
-
-            if (numCrLf > n)
-            {
-                autoLineEnding = LineEnding.CrLf;
-                n = numCrLf;
-            }
-            if (numCr > n)
-            {
-                autoLineEnding = LineEnding.Cr;
-            }
-
             if (this.FixedEndings == LineEnding.Auto)
-                this.FixedEndings = autoLineEnding;
-
-            string newLineChars = 
-                this.FixedEndings == LineEnding.Cr ? "\r" :
-                this.FixedEndings == LineEnding.Lf ? "\n" :
-                "\r\n";
-
-            n = 0;
-
-            using (StreamWriter writer = new StreamWriter(OutputFileName))
             {
-                for (int i = 0; i < fileContents.Length; i++)
+                // Find the most common line ending and make that the automatic line ending
+                LineEnding autoLineEnding = LineEnding.Lf;
+                int n = numLf;
+
+                if (numCrLf > n)
                 {
-                    char c = fileContents[i];
+                    autoLineEnding = LineEnding.CrLf;
+                    n = numCrLf;
+                }
+                if (numCr > n)
+                {
+                    autoLineEnding = LineEnding.Cr;
+                }
 
-                    if (c == '\r')
+                this.FixedEndings = autoLineEnding;
+            }
+
+            int newNumLines;
+
+            if ((this.FixedEndings == LineEnding.Cr && numCr + 1 == numLines) ||
+                (this.FixedEndings == LineEnding.Lf && numLf + 1 == numLines) ||
+                (this.FixedEndings == LineEnding.CrLf && numCrLf + 1 == numLines))
+            {
+                // We're not changing the line endings
+                newNumLines = numLines;
+            }
+            else
+            {
+                string newLineChars = 
+                    this.FixedEndings == LineEnding.Cr ? "\r" :
+                        this.FixedEndings == LineEnding.Lf ? "\n" :
+                        "\r\n";
+
+                newNumLines = 0;
+
+                using (StreamWriter writer = new StreamWriter(OutputFileName))
+                {
+                    for (int i = 0; i < fileContents.Length; i++)
                     {
-                        if (i < fileContents.Length - 1 && fileContents[i + 1] == '\n')
+                        char c = fileContents[i];
+
+                        if (c == '\r')
                         {
-                            i++;
-                        }
+                            if (i < fileContents.Length - 1 && fileContents[i + 1] == '\n')
+                            {
+                                i++;
+                            }
 
-                        n++;
-                        writer.Write(newLineChars);
-                    }
-                    else if (c == '\n')
-                    {
-                        n++;
-                        writer.Write(newLineChars);
-                    }
-                    else
-                    {
-                        writer.Write(c);
+                            newNumLines++;
+                            writer.Write(newLineChars);
+                        }
+                        else if (c == '\n')
+                        {
+                            newNumLines++;
+                            writer.Write(newLineChars);
+                        }
+                        else
+                        {
+                            writer.Write(c);
+                        }
                     }
                 }
+                
+                sb.AppendFormat(
+                    " -> \"{0}\", lines={1}, {2}={3}", 
+                    OutputFileName, 
+                    newNumLines + 1,
+                    FixedEndings.Value == LineEnding.Cr ? "cr" : 
+                    FixedEndings.Value == LineEnding.Lf ? "lf" : "crlf",
+                    newNumLines);
             }
-
-            sb.AppendFormat(
-                " -> \"{0}\", lines={1}, {2}={3}", 
-                OutputFileName, 
-                n + 1,
-                FixedEndings.Value == LineEnding.Cr ? "cr" : 
-                FixedEndings.Value == LineEnding.Lf ? "lf" : "crlf",
-                n);
 
             WriteMessage(sb.ToString());
         }
