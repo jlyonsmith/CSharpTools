@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
+using System.Text;
 
 namespace Tools
 {
@@ -17,9 +18,10 @@ namespace Tools
 
         public bool HasOutputErrors { get; set; }
         public bool ShowUsage;
-        public LineStart? FixedLineStarts;
+        public LineStart? ConvertMode;
         public string InputFileName;
         public string OutputFileName;
+        public int TabSize = 4;
 
         public SpacerTool()
         {
@@ -69,7 +71,95 @@ Arguments:
             }
 
             // Read the entire file and determine all the different line starts
-            string fileContents = File.ReadAllText(InputFileName);
+            string[] fileLines = File.ReadAllLines(InputFileName);
+
+            bool inStringConst = false;
+
+            int totalTabs = 0;
+            int totalSpaces = 0;
+            int newTotalTabs = 0;
+            int newTotalSpaces = 0;
+
+            StreamWriter writer = null;
+
+            try
+            {
+                if (ConvertMode.HasValue)
+                    writer = new StreamWriter(this.OutputFileName);
+
+                foreach (string line in fileLines)
+                {
+                    if (!inStringConst)
+                    {
+                        int n = 0;
+                        int i = 0;
+
+                        while (true)
+                        {
+                            char c = line[i];
+                            if (c == ' ')
+                            {
+                                n++;
+                                totalSpaces++;
+                            }
+                            else if (c == '\t')
+                            {
+                                n += this.TabSize;
+                                totalTabs++;
+                            }
+                            else
+                                break;
+                            i++;
+                        }
+
+                        if (ConvertMode.HasValue)
+                        {
+                            if (ConvertMode.Value == LineStart.Tabs)
+                            {
+                                int m = (n / this.TabSize);
+                                writer.Write(new String('\t', m));
+                                newTotalTabs += m;
+                                m = (n % this.TabSize);
+                                writer.Write(new String(' ', m));
+                                newTotalSpaces += m;
+                            }
+                            else
+                            {
+                                writer.Write(new String(' ', n));
+                                newTotalSpaces += n;
+                            }
+
+                            writer.Write(line.Substring(i));
+                        }
+
+                        if (line.IndexOf("@\"") >= 0 &&
+                            line.Replace("@\"", "").Replace("\"\"", "").IndexOf("\"") >=0)
+                                inStringConst = true;
+                    }
+                    else
+                    {
+                        if (ConvertMode.HasValue)
+                            writer.Write(line);
+
+                        if (line.Replace("\"\"", "").IndexOf("\"") >=0)
+                            inStringConst = false;
+                    }
+                }
+            }
+            finally
+            {
+                if (writer != null)
+                    writer.Close();
+            }
+
+            StringBuilder sb = new StringBuilder();
+            
+            sb.AppendFormat("tabs = {0}, spaces = {1}", totalTabs, totalSpaces);
+
+            if (this.ConvertMode.HasValue)
+                sb.AppendFormat(" -> tabs = {0}, spaces = {1}", newTotalTabs, newTotalSpaces);
+
+            WriteMessage(sb.ToString());
         }
 
         public void ProcessCommandLine (string[] args)
@@ -86,10 +176,15 @@ Arguments:
                         continue;
                     case 'f':
                         string lineStarts = null;
-                        if (FixedLineStarts.HasValue)
-                            lineStarts = (FixedLineStarts.Value == LineStart.Spaces ? "s" : "t");
+                        if (ConvertMode.HasValue)
+                            lineStarts = (ConvertMode.Value == LineStart.Spaces ? "s" : "t");
                         CheckAndSetArgument(arg, ref lineStarts); 
-                        FixedLineStarts = (lineStarts == "s" ? LineStart.Spaces : LineStart.Tabs);
+                        ConvertMode = (lineStarts == "s" ? LineStart.Spaces : LineStart.Tabs);
+                        break;
+                    case 's':
+                        string tabSize = this.TabSize.ToString();
+                        CheckAndSetArgument(arg, ref tabSize);
+                        this.TabSize = int.Parse(tabSize);
                         break;
                     default:
                         throw new ApplicationException (string.Format ("Unknown argument '{0}'", arg [1]));

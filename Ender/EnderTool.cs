@@ -23,7 +23,7 @@ namespace Tools
         #region Fields
         public string InputFileName;
         public string OutputFileName;
-        public LineEnding? FixedEndings;
+        public LineEnding? ConvertMode;
         public bool ShowUsage;
 
         public bool HasOutputErrors { get; set; }
@@ -117,13 +117,13 @@ Arguments:
                 "\"{0}\", lines={1}, cr={2}, lf={3}, crlf={4} {5}", 
                 this.InputFileName, numLines, numCr, numLf, numCrLf, numEndings > 1 ? ", mixed" : "");
 
-            if (!FixedEndings.HasValue)
+            if (!ConvertMode.HasValue)
             {
                 WriteMessage(sb.ToString());
                 return;
             }
 
-            if (this.FixedEndings == LineEnding.Auto)
+            if (this.ConvertMode == LineEnding.Auto)
             {
                 // Find the most common line ending and make that the automatic line ending
                 LineEnding autoLineEnding = LineEnding.Lf;
@@ -139,14 +139,14 @@ Arguments:
                     autoLineEnding = LineEnding.Cr;
                 }
 
-                this.FixedEndings = autoLineEnding;
+                this.ConvertMode = autoLineEnding;
             }
 
             int newNumLines;
 
-            if ((this.FixedEndings == LineEnding.Cr && numCr + 1 == numLines) ||
-                (this.FixedEndings == LineEnding.Lf && numLf + 1 == numLines) ||
-                (this.FixedEndings == LineEnding.CrLf && numCrLf + 1 == numLines))
+            if ((this.ConvertMode == LineEnding.Cr && numCr + 1 == numLines) ||
+                (this.ConvertMode == LineEnding.Lf && numLf + 1 == numLines) ||
+                (this.ConvertMode == LineEnding.CrLf && numCrLf + 1 == numLines))
             {
                 // We're not changing the line endings
                 newNumLines = numLines;
@@ -154,8 +154,8 @@ Arguments:
             else
             {
                 string newLineChars = 
-                    this.FixedEndings == LineEnding.Cr ? "\r" :
-                        this.FixedEndings == LineEnding.Lf ? "\n" :
+                    this.ConvertMode == LineEnding.Cr ? "\r" :
+                        this.ConvertMode == LineEnding.Lf ? "\n" :
                         "\r\n";
 
                 newNumLines = 0;
@@ -192,8 +192,8 @@ Arguments:
                     " -> \"{0}\", lines={1}, {2}={3}", 
                     OutputFileName, 
                     newNumLines + 1,
-                    FixedEndings.Value == LineEnding.Cr ? "cr" : 
-                    FixedEndings.Value == LineEnding.Lf ? "lf" : "crlf",
+                    ConvertMode.Value == LineEnding.Cr ? "cr" : 
+                    ConvertMode.Value == LineEnding.Lf ? "lf" : "crlf",
                     newNumLines);
             }
 
@@ -216,9 +216,9 @@ Arguments:
                         CheckAndSetArgument(arg, ref OutputFileName); 
                         continue;
                     case 'f':
-                        string lineEndings = (FixedEndings.HasValue ? FixedEndings.Value.ToString() : null);
+                        string lineEndings = (ConvertMode.HasValue ? ConvertMode.Value.ToString() : null);
                         CheckAndSetArgument(arg, ref lineEndings); 
-                        FixedEndings = (LineEnding)Enum.Parse(typeof(LineEnding), lineEndings, true);
+                        ConvertMode = (LineEnding)Enum.Parse(typeof(LineEnding), lineEndings, true);
                         break;
                     default:
                         throw new ApplicationException(string.Format("Unknown argument '{0}'", arg[1]));
