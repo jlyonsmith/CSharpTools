@@ -1,6 +1,6 @@
 mcs GenTestFiles.cs
 mono GenTestFiles.exe
-HAMMER="../bin/Debug/Hammer.exe -q"
+HAMMER="../bin/Debug/Hammer.exe"
 mono $HAMMER cr.txt
 mono $HAMMER lf.txt
 mono $HAMMER crlf.txt

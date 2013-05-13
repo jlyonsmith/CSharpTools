@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Diagnostics;
 using System.Resources;
+using System.Linq;
 
 namespace Hammer
 {
@@ -14,20 +15,15 @@ namespace Hammer
     {
         public enum LineEnding
         {
-            Auto
-,
-            Cr
-,
-            Lf
-,
+            Auto,
+            Cr,
+            Lf,
             CrLf
-,
         }
         #region Fields
         public string InputFileName;
         public string OutputFileName;
         public LineEnding? FixedEndings;
-        public bool NoLogo;
         public bool ShowUsage;
 
         public bool HasOutputErrors { get; set; }
@@ -42,17 +38,15 @@ namespace Hammer
         #region Methods
         public void Execute()
         {
-            if (!NoLogo)
-            {
-                string version = ((AssemblyFileVersionAttribute)Assembly.GetExecutingAssembly()
-                                  .GetCustomAttributes(typeof(AssemblyFileVersionAttribute), true)[0]).Version;
-                
-                WriteMessage("Hammer text line ending fixer. Version {0}", version);
-                WriteMessage("Copyright (c) 2012, John Lyon-Smith." + Environment.NewLine);
-            }
-            
             if (ShowUsage)
             {
+                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(true);
+                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyVersionAttribute)).Version;
+                string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
+                string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
+
+                WriteMessage("{0}. Version {1}", title, version);
+                WriteMessage("{0}.{1}", copyright, Environment.NewLine);
                 WriteMessage(@"Reports on and fixes line endings for text files.
     
 Usage: mono Hammer.exe ...
@@ -61,7 +55,6 @@ Arguments:
     <text-file>              Input text file.
     [-o:<output-file>]       Specify different name for output file.
     [-f:<line-endings>]      Fix line endings to be cr, lf, crlf or auto.
-    [-q]                     Suppress logo.
     [-h] or [-?]             Show help.
 ");
                 return;
@@ -219,9 +212,6 @@ Arguments:
                     case '?':
                         ShowUsage = true;
                         return;
-                    case 'q':
-                        NoLogo = true;
-                        continue;
                     case 'o':
                         CheckAndSetArgument(arg, ref OutputFileName); 
                         continue;

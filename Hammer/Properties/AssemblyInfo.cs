@@ -8,11 +8,11 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Release")]
 #endif
 
-[assembly: AssemblyTitle("Hammer")]
-[assembly: AssemblyDescription("Line ending fixer")]
+[assembly: AssemblyTitle("Hammer Line Ending Fixer")]
+[assembly: AssemblyDescription("Reports on and optionally fixes line endings in text files")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
-[assembly: AssemblyProduct("ToolBelt")]
-[assembly: AssemblyCopyright("Copyright © John Lyon-Smith 2012")]
+[assembly: AssemblyProduct("C# Tools")]
+[assembly: AssemblyCopyright("Copyright (c) John Lyon-Smith 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
