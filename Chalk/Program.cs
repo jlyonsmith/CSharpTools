@@ -1,6 +1,6 @@
 using System;
 
-namespace Chisel.MacOS
+namespace Tools.MacOS
 {
 	class MainClass
 	{

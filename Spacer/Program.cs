@@ -1,12 +1,12 @@
 using System;
 
-namespace Chisel.MacOS
+namespace Tools
 {
-	class MainClass
+	class Program
 	{
 		public static int Main(string[] args)
 		{
-			ChiselTool tool = new ChiselTool();
+			SpacerTool tool = new SpacerTool();
 
 			try
 			{
@@ -17,7 +17,7 @@ namespace Chisel.MacOS
 			}
 			catch (Exception exception)
 			{
-				Console.WriteLine("Error: Exception: {0}", exception);
+				Console.WriteLine("Error: Exception: {0}", exception.Message);
 				return 1;
 			}
 		}
