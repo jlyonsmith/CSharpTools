@@ -4,39 +4,36 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 
 namespace Tools
 {
-	public class ChalkTool
+	public class VamperTool
 	{
 		private string filesAtom;
 		public bool HasOutputErrors { get; set; }
 		public bool ShowUsage { get; set; }
-		public bool NoLogo { get; set; }
 
-		public ChalkTool()
+		public VamperTool()
 		{
 		}
 
 		public void Execute()
 		{
-			if (!NoLogo)
-			{
-				string version = ((AssemblyFileVersionAttribute)Assembly.GetExecutingAssembly()
-				                  .GetCustomAttributes(typeof(AssemblyFileVersionAttribute), true)[0]).Version;
-				
-				WriteMessage("Chalk Version Number Maintainer. Version {0}", version);
-				WriteMessage("Copyright (c) 2012, John Lyon-Smith." + Environment.NewLine);
-			}
-			
 			if (ShowUsage)
 			{
-				WriteMessage(@"Creates and increments version information in .version file in .sln directory.
+                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(true);
+                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyVersionAttribute)).Version;
+                string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
+                string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
+
+                WriteMessage("{0}. Version {1}", title, version);
+                WriteMessage("{0}.{1}", copyright, Environment.NewLine);
+				WriteMessage(@"Version information stamper and incrementer. Version information is .version file in .sln directory.
 	
-Usage: mono Chalk.exe ...
+Usage: mono Vamper.exe ...
 
 Arguments:
-          [-q]                    Suppress logo
           [-h] or [-?]            Show help
 ");
 				return;
@@ -415,30 +412,10 @@ Arguments:
 					case '?':
 						ShowUsage = true;
 						return;
-					case 'q':
-						NoLogo = true;
-						continue;
 					default:
 						throw new ApplicationException(string.Format("Unknown argument '{0}'", arg[1]));
 					}
 				}
-			}
-		}
-		
-		private void CheckAndSetArgument(string arg, ref string val)
-		{
-			if (arg[2] != ':')
-			{
-				throw new ApplicationException(string.Format("Argument {0} is missing a colon", arg[1]));
-			}
-			
-			if (string.IsNullOrEmpty(val))
-			{
-				val = arg.Substring(3);
-			}
-			else
-			{
-				throw new ApplicationException(string.Format("Argument {0} has already been set", arg[1]));
 			}
 		}
 

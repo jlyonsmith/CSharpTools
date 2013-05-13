@@ -1,12 +1,12 @@
 using System;
 
-namespace Tools.MacOS
+namespace Tools
 {
-	class MainClass
+	class Program
 	{
 		public static int Main(string[] args)
 		{
-			ChalkTool tool = new ChalkTool();
+			VamperTool tool = new VamperTool();
 			
 			try
 			{
