@@ -9,10 +9,11 @@ using System.IO;
 using System.Reflection;
 using System.Diagnostics;
 using System.Resources;
+using System.Linq;
 
-namespace Buckle
+namespace Tools
 {
-	public class BuckleTool
+	public class StrapperTool
 	{
 		#region Classes
 		private class ResourceItem
@@ -80,7 +81,6 @@ namespace Buckle
 		public string BaseName;
 		public string WrapperClass;
 		public string Modifier;
-		public bool NoLogo;
 		public bool ShowUsage;
 		public bool Incremental;
 		public bool HasOutputErrors { get; set; }
@@ -88,7 +88,7 @@ namespace Buckle
 		#endregion
 
 		#region Constructors
-		public BuckleTool()
+		public StrapperTool()
 		{
 		}
 
@@ -97,20 +97,18 @@ namespace Buckle
 		#region Methods
 		public void Execute()
 		{
-            if (!NoLogo)
-            {
-				string version = ((AssemblyFileVersionAttribute)Assembly.GetExecutingAssembly()
-					.GetCustomAttributes(typeof(AssemblyFileVersionAttribute), true)[0]).Version;
-				
-				WriteMessage("Buckle ResX to C# String Wrapper Class Generator. Version {0}", version);
-				WriteMessage("Copyright (c) 2012, John Lyon-Smith." + Environment.NewLine);
-            }
-		
 			if (ShowUsage)
 			{
+                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(true);
+                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyVersionAttribute)).Version;
+                string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
+                string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
+
+                WriteMessage("{0}. Version {1}", title, version);
+                WriteMessage("{0}.{1}", copyright, Environment.NewLine);
 				WriteMessage(@"Generates strongly typed wrappers for string and bitmap .resx resources
 	
-Usage: mono Buckle.exe ...
+Usage: mono Strapper.exe ...
 
 Arguments:
           <resx-file>              Input .resx file.
@@ -122,7 +120,6 @@ Arguments:
                                    ResourceManager constructor documentation for details.
           [-w:<wrapper-class>]     String wrapper class. See Message.cs for details.
           [-a:<access>]            Access modifier for properties and methods.
-          [-q]                     Suppress logo.
           [-i]                     Incremental build. Create outputs only if out-of-date.
           [-h] or [-?]             Show help.
 ");
@@ -593,9 +590,6 @@ using System.Globalization;
 						return;
 					case 'i':
 						Incremental = true;
-						continue;
-					case 'q':
-						NoLogo = true;
 						continue;
 					case 'b':
 						CheckAndSetArgument(arg, ref BaseName);

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Buckle
+namespace Tools
 {
 	class Program
 	{
 		static int Main(string[] args)
 		{
-			BuckleTool tool = new BuckleTool();
+			StrapperTool tool = new StrapperTool();
 
 			try
 			{

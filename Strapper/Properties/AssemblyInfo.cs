@@ -8,11 +8,11 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Release")]
 #endif
 
-[assembly: AssemblyTitle("Buckle")]
+[assembly: AssemblyTitle("Strapper")]
 [assembly: AssemblyDescription("String Resource Strongly Typed Class Wrapper Generator")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
-[assembly: AssemblyProduct("ToolBelt")]
-[assembly: AssemblyCopyright("Copyright © John Lyon-Smith 2012")]
+[assembly: AssemblyProduct("Tools")]
+[assembly: AssemblyCopyright("Copyright © John Lyon-Smith 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]

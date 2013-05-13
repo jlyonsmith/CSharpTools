@@ -8,7 +8,7 @@
     <ProjectGuid>{6E761DAD-D768-4DF8-8938-FCF0F6F2B76C}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Chisel</RootNamespace>
-    <AssemblyName>Chisel</AssemblyName>
+    <AssemblyName>Spacer</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
