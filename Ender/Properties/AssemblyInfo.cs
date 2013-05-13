@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Release")]
 #endif
 
-[assembly: AssemblyTitle("Hammer Line Ending Fixer")]
+[assembly: AssemblyTitle("Ender Line Ending Fixer")]
 [assembly: AssemblyDescription("Reports on and optionally fixes line endings in text files")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
 [assembly: AssemblyProduct("C# Tools")]

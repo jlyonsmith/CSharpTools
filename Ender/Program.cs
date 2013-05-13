@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Hammer
+namespace Tools
 {
 	class Program
 	{
 		static int Main(string[] args)
 		{
-			HammerTool tool = new HammerTool();
+			EnderTool tool = new EnderTool();
 			
 			try
 			{

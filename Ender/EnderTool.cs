@@ -9,9 +9,9 @@ using System.Diagnostics;
 using System.Resources;
 using System.Linq;
 
-namespace Hammer
+namespace Tools
 {
-    public class HammerTool
+    public class EnderTool
     {
         public enum LineEnding
         {
@@ -30,7 +30,7 @@ namespace Hammer
         #endregion
         
         #region Constructors
-        public HammerTool()
+        public EnderTool()
         {
         }
         #endregion      
@@ -49,7 +49,7 @@ namespace Hammer
                 WriteMessage("{0}.{1}", copyright, Environment.NewLine);
                 WriteMessage(@"Reports on and fixes line endings for text files.
     
-Usage: mono Hammer.exe ...
+Usage: mono Ender.exe ...
 
 Arguments:
     <text-file>              Input text file.

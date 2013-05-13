@@ -8,7 +8,7 @@
     <ProjectGuid>{AC21794C-3783-4048-913C-A9A4CEEC23B2}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Hammer</RootNamespace>
-    <AssemblyName>Hammer</AssemblyName>
+    <AssemblyName>Ender</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>True</DebugSymbols>
@@ -38,7 +38,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="HammerTool.cs" />
+    <Compile Include="EnderTool.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -48,6 +48,6 @@
   <ItemGroup>
     <None Include="Test\GenTestFiles.sh" />
     <None Include="Test\GenTestFiles.cs" />
-    <None Include="hammer" />
+    <None Include="ender" />
   </ItemGroup>
 </Project>
