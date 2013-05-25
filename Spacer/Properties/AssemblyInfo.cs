@@ -8,13 +8,12 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Release")]
 #endif
 
-[assembly: AssemblyTitle("Chisel")]
-[assembly: AssemblyDescription("Tab/space fixer")]
+[assembly: AssemblyTitle("Spacer Tool")]
+[assembly: AssemblyDescription("Text file tab/space reporter and fixer")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
-[assembly: AssemblyProduct("Tools")]
-[assembly: AssemblyCopyright("Copyright © John Lyon-Smith 2013")]
+[assembly: AssemblyProduct("C# Tools")]
+[assembly: AssemblyCopyright("Copyright (c) John Lyon-Smith 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: AssemblyVersion("1.7.0.0")]
-[assembly: AssemblyFileVersion("1.7.20317.4")]

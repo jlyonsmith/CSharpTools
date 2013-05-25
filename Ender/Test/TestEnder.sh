@@ -1,6 +1,7 @@
-mcs GenTestFiles.cs
-mono GenTestFiles.exe
+mcs GenEnderTestFiles.cs
+mono GenEnderTestFiles.exe
 ENDER="../bin/Debug/Ender.exe"
+mono $ENDER -h
 mono $ENDER cr.txt
 mono $ENDER lf.txt
 mono $ENDER crlf.txt
@@ -16,3 +17,5 @@ mono $ENDER -f:auto mixed1.txt
 mono $ENDER -f:auto mixed2.txt
 mono $ENDER -f:auto mixed3.txt
 mono $ENDER -f:auto mixed4.txt
+#rm GenEnderTestFiles.exe
+#rm *.txt

@@ -40,18 +40,19 @@ namespace Tools
         {
             if (ShowUsage)
             {
-                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(true);
-                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyVersionAttribute)).Version;
+                Assembly assembly = Assembly.GetExecutingAssembly();
+                string name = assembly.FullName.Substring(0, assembly.FullName.IndexOf(','));
+                object[] attributes = assembly.GetCustomAttributes(true);
+                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyFileVersionAttribute)).Version;
                 string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
                 string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
+                string description = ((AssemblyDescriptionAttribute)attributes.First(x => x is AssemblyDescriptionAttribute)).Description;
 
                 WriteMessage("{0}. Version {1}", title, version);
-                WriteMessage("{0}.{1}", copyright, Environment.NewLine);
-                WriteMessage(@"Reports on and fixes line endings for text files.
-    
-Usage: mono Ender.exe ...
-
-Arguments:
+                WriteMessage("{0}.\n", copyright);
+                WriteMessage("{0}\n", description);
+                WriteMessage("Usage: mono {0}.exe ...\n", name);
+                WriteMessage(@"Arguments:
     <text-file>              Input text file.
     [-o:<output-file>]       Specify different name for output file.
     [-f:<line-endings>]      Fix line endings to be cr, lf, crlf or auto.
@@ -114,7 +115,7 @@ Arguments:
             StringBuilder sb = new StringBuilder();
 
             sb.AppendFormat(
-                "\"{0}\", lines={1}, cr={2}, lf={3}, crlf={4} {5}", 
+                "\"{0}\", lines={1}, cr={2}, lf={3}, crlf={4}{5}", 
                 this.InputFileName, numLines, numCr, numLf, numCrLf, numEndings > 1 ? ", mixed" : "");
 
             if (!ConvertMode.HasValue)

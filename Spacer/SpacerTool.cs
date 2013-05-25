@@ -10,7 +10,7 @@ namespace Tools
 {
     public class SpacerTool
     {
-        public enum LineStart
+        public enum Whitespace
         {
             Tabs,
             Spaces
@@ -18,7 +18,7 @@ namespace Tools
 
         public bool HasOutputErrors { get; set; }
         public bool ShowUsage;
-        public LineStart? ConvertMode;
+        public Whitespace? ConvertMode;
         public string InputFileName;
         public string OutputFileName;
         public int TabSize = 4;
@@ -31,24 +31,25 @@ namespace Tools
         {
             if (ShowUsage) 
             {
-                object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(true);
-                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyVersionAttribute)).Version;
+                Assembly assembly = Assembly.GetExecutingAssembly();
+                string name = assembly.FullName.Substring(0, assembly.FullName.IndexOf(','));
+                object[] attributes = assembly.GetCustomAttributes(true);
+                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyFileVersionAttribute)).Version;
                 string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
                 string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
+                string description = ((AssemblyDescriptionAttribute)attributes.First(x => x is AssemblyDescriptionAttribute)).Description;
 
                 WriteMessage("{0}. Version {1}", title, version);
-                WriteMessage("{0}.{1}", copyright, Environment.NewLine);
-                WriteMessage(@"Makes spaces/tabs consistent at the beginning of text file lines.
-    
-Usage: mono Spacer.exe ...
-
-Arguments:
-          [-o                     Specify different name for output file.
-          [-m:MODE]               The conversion mode if conversion is required. 
-                                  't' to convert to tabs, 's' to convert to spaces,
-                                  Default is to report only.
-          [-s]                    The tab size (default is 4)
-          [-h] or [-?]            Show help.
+                WriteMessage("{0}.\n", copyright);
+                WriteMessage("{0}\n", description);
+                WriteMessage("Usage: mono {0}.exe ...\n", name);
+                WriteMessage(@"Arguments:
+    [-o:OUTPUTFILE]         Specify different name for output file.
+    [-m:MODE]               The conversion mode if conversion is required. 
+                            't' to convert to tabs, 's' to convert to spaces,
+                            Default is to report only.
+    [-s:TABSTOP]            The distance between each tabstop (default is 4)
+    [-h] or [-?]            Show help.
 ");
                 return;
             }
@@ -69,97 +70,234 @@ Arguments:
             {
                 OutputFileName = InputFileName;
             }
-
-            // Read the entire file and determine all the different line starts
-            string[] fileLines = File.ReadAllLines(InputFileName);
-
-            bool inStringConst = false;
-
-            int totalTabs = 0;
-            int totalSpaces = 0;
-            int newTotalTabs = 0;
-            int newTotalSpaces = 0;
-
-            StreamWriter writer = null;
-
-            try
+            else
             {
-                if (ConvertMode.HasValue)
-                    writer = new StreamWriter(this.OutputFileName);
-
-                foreach (string line in fileLines)
+                if (!ConvertMode.HasValue)
                 {
-                    if (!inStringConst)
-                    {
-                        int n = 0;
-                        int i = 0;
-
-                        while (true)
-                        {
-                            char c = line[i];
-                            if (c == ' ')
-                            {
-                                n++;
-                                totalSpaces++;
-                            }
-                            else if (c == '\t')
-                            {
-                                n += this.TabSize;
-                                totalTabs++;
-                            }
-                            else
-                                break;
-                            i++;
-                        }
-
-                        if (ConvertMode.HasValue)
-                        {
-                            if (ConvertMode.Value == LineStart.Tabs)
-                            {
-                                int m = (n / this.TabSize);
-                                writer.Write(new String('\t', m));
-                                newTotalTabs += m;
-                                m = (n % this.TabSize);
-                                writer.Write(new String(' ', m));
-                                newTotalSpaces += m;
-                            }
-                            else
-                            {
-                                writer.Write(new String(' ', n));
-                                newTotalSpaces += n;
-                            }
-
-                            writer.Write(line.Substring(i));
-                        }
-
-                        if (line.IndexOf("@\"") >= 0 &&
-                            line.Replace("@\"", "").Replace("\"\"", "").IndexOf("\"") >=0)
-                                inStringConst = true;
-                    }
-                    else
-                    {
-                        if (ConvertMode.HasValue)
-                            writer.Write(line);
-
-                        if (line.Replace("\"\"", "").IndexOf("\"") >=0)
-                            inStringConst = false;
-                    }
+                    WriteError("Must specify conversion mode with output file");
+                    return;
                 }
             }
-            finally
+
+            List<string> lines = ReadFileLines();
+            int numTabs;
+            int numSpaces;
+
+            CountBolSpacesAndTabs(lines, out numTabs, out numSpaces);
+
+            bool mixed = (numTabs >0 && numSpaces > 0);
+
+            if (ConvertMode.HasValue)
             {
-                if (writer != null)
-                    writer.Close();
+                SmartUntabify(lines);
+
+                using (StreamWriter writer = new StreamWriter(this.OutputFileName))
+                {
+                    if (this.ConvertMode == Whitespace.Tabs)
+                    {
+                        SmartTabify(lines);
+                    }
+
+                    foreach (var line in lines)
+                    {
+                        writer.Write(line);
+                    }
+                }
             }
 
             StringBuilder sb = new StringBuilder();
             
-            sb.AppendFormat("tabs = {0}, spaces = {1}", totalTabs, totalSpaces);
+            sb.AppendFormat("tabs={0}, spaces={1}{2}", numTabs, numSpaces, mixed ? ", mixed" : "");
 
             if (this.ConvertMode.HasValue)
-                sb.AppendFormat(" -> tabs = {0}, spaces = {1}", newTotalTabs, newTotalSpaces);
+            {
+                CountBolSpacesAndTabs(lines, out numTabs, out numSpaces);
+                sb.AppendFormat(" -> tabs={0}, spaces={1}", numTabs, numSpaces);
+            }
 
             WriteMessage(sb.ToString());
+        }
+
+        public void CountBolSpacesAndTabs(List<string> lines, out int numTabs, out int numSpaces)
+        {
+            numSpaces = 0;
+            numTabs = 0;
+            bool inStringConst = false;
+
+            foreach (string line in lines)
+            {
+                bool atBol = true;
+
+                for (int i = 0; i < line.Length; i++)
+                {
+                    char c = line[i];
+                    char c1 = i < line.Length - 1 ? line[i + 1] : '\0';
+
+                    if (inStringConst)
+                    {
+                        if (c == '"' && c1 != '"')
+                            inStringConst = false;
+                    }
+                    else
+                    {
+                        if (c == '@' && c1 == '"')
+                            inStringConst = true;
+                    }
+
+                    if (atBol)
+                    {
+                        if (c == ' ')
+                            numSpaces++;
+                        else if (c == '\t')
+                            numTabs++;
+                        else
+                            atBol = false;
+                    }
+                }
+            }
+        }
+
+        public List<string> ReadFileLines()
+        {
+            // Read the entire file
+            string fileContents = File.ReadAllText(InputFileName);
+
+            // Convert to a list of lines, preserving the end-of-lines
+            List<string> lines = new List<string>();
+            int s = 0;
+
+            for (int i = 0; i < fileContents.Length; i++)
+            {
+                char c = fileContents[i];
+
+                if (c == '\r')
+                {
+                    i++;
+
+                    if (i < fileContents.Length && fileContents[i] == '\n')
+                        i++;
+                }
+                else if (c == '\n')
+                    i++;
+                else
+                    continue;
+
+                lines.Add(fileContents.Substring(s, i - s));
+                s = i;
+            }
+
+            return lines;
+        }
+
+        public void SmartUntabify(List<string> lines)
+        {
+            // Expand tabs anywhere on a line, but not inside @"..." strings
+
+            StringBuilder sb = new StringBuilder();
+            bool inStringConst = false;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                string line = lines[i];
+
+                for (int j = 0; j < line.Length; j++)
+                {
+                    char c = line[j];
+                    char c1 = j < line.Length - 1 ? line[j + 1] : '\0';
+
+                    if (inStringConst)
+                    {
+                        if (c == '"' && c1 != '"')
+                        {
+                            inStringConst = false;
+                        }
+                    }
+                    else
+                    {
+                        if (c == '\t')
+                        {
+                            // Add spaces to next tabstop
+                            int numSpaces = this.TabSize - (sb.Length % this.TabSize);
+
+                            sb.Append(' ', numSpaces);
+                            continue;
+                        }
+                        else if (c == '@' && c1 == '"')
+                        {
+                            sb.Append(c);
+                            sb.Append(c1);
+                            j++;
+                            inStringConst = true;
+                            continue;
+                        }
+                    }
+
+                    sb.Append(c);
+                }
+
+                lines[i] = sb.ToString();
+                sb.Clear();
+            }
+        }
+
+        public void SmartTabify(List<string> lines)
+        {
+            // Insert tabs where there are only spaces between two tab stops, but only at the beginning of lines
+            // and not inside @"..." strings
+
+            StringBuilder sb = new StringBuilder();
+            bool inStringConst = false;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                string line = lines[i];
+                bool beginningOfLine = true;
+                int numBolSpaces = 0;
+
+                for (int j = 0; j < line.Length; j++)
+                {
+                    char c = line[j];
+
+                    if (beginningOfLine && c != ' ')
+                    {
+                        sb.Append(new string('\t', numBolSpaces / this.TabSize));
+                        sb.Append(new string(' ', numBolSpaces % this.TabSize));
+                        beginningOfLine = false;
+                    }
+
+                    char c1 = j < line.Length - 1 ? line[j + 1] : '\0';
+
+                    if (inStringConst)
+                    {
+                        if (c == '"' && c1 != '"')
+                        {
+                            inStringConst = false;
+                        }
+                    }
+                    else
+                    {
+                        if (beginningOfLine && c == ' ')
+                        {
+                            // Just count the spaces
+                            numBolSpaces++;
+                            continue;
+                        }
+                        else if (c == '@' && c1 == '"')
+                        {
+                            sb.Append(c);
+                            sb.Append(c1);
+                            j++;
+                            inStringConst = true;
+                            continue;
+                        }
+                    }
+
+                    sb.Append(c);
+                }
+
+                lines[i] = sb.ToString();
+                sb.Clear();
+            }
         }
 
         public void ProcessCommandLine (string[] args)
@@ -174,12 +312,12 @@ Arguments:
                     case 'o':
                         CheckAndSetArgument(arg, ref OutputFileName); 
                         continue;
-                    case 'f':
+                    case 'm':
                         string lineStarts = null;
                         if (ConvertMode.HasValue)
-                            lineStarts = (ConvertMode.Value == LineStart.Spaces ? "s" : "t");
+                            lineStarts = (ConvertMode.Value == Whitespace.Spaces ? "s" : "t");
                         CheckAndSetArgument(arg, ref lineStarts); 
-                        ConvertMode = (lineStarts == "s" ? LineStart.Spaces : LineStart.Tabs);
+                        ConvertMode = (lineStarts == "s" ? Whitespace.Spaces : Whitespace.Tabs);
                         break;
                     case 's':
                         string tabSize = this.TabSize.ToString();
@@ -187,8 +325,16 @@ Arguments:
                         this.TabSize = int.Parse(tabSize);
                         break;
                     default:
-                        throw new ApplicationException (string.Format ("Unknown argument '{0}'", arg [1]));
+                        throw new ApplicationException(string.Format ("Unknown argument '{0}'", arg [1]));
                     }
+                }
+                else if (String.IsNullOrEmpty(InputFileName))
+                {
+                    InputFileName = arg;
+                }
+                else
+                {
+                    throw new ApplicationException("Only one file can be specified");
                 }
             }
         }
@@ -230,4 +376,3 @@ Arguments:
         }
     }
 }
-
