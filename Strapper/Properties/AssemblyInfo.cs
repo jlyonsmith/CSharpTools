@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Strapper")]
 [assembly: AssemblyDescription("String Resource Strongly Typed Class Wrapper Generator")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
-[assembly: AssemblyProduct("Tools")]
+[assembly: AssemblyProduct(".NET Coding Tools")]
 [assembly: AssemblyCopyright("Copyright © John Lyon-Smith 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

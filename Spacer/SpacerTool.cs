@@ -12,8 +12,9 @@ namespace Tools
     {
         public enum Whitespace
         {
+            Mixed,
             Tabs,
-            Spaces
+            Spaces,
         }
 
         public bool HasOutputErrors { get; set; }
@@ -80,53 +81,58 @@ namespace Tools
             }
 
             List<string> lines = ReadFileLines();
-            int numTabs;
-            int numSpaces;
+            int beforeTabs;
+            int beforeSpaces;
 
-            CountBolSpacesAndTabs(lines, out numTabs, out numSpaces);
-
-            bool mixed = (numTabs >0 && numSpaces > 0);
+            CountBolSpacesAndTabs(lines, out beforeTabs, out beforeSpaces);
 
             if (ConvertMode.HasValue)
             {
                 SmartUntabify(lines);
 
-                using (StreamWriter writer = new StreamWriter(this.OutputFileName))
+                if (this.ConvertMode == Whitespace.Tabs)
                 {
-                    if (this.ConvertMode == Whitespace.Tabs)
-                    {
-                        SmartTabify(lines);
-                    }
-
-                    foreach (var line in lines)
-                    {
-                        writer.Write(line);
-                    }
+                    SmartTabify(lines);
                 }
             }
 
             StringBuilder sb = new StringBuilder();
-            
-            sb.AppendFormat("tabs={0}, spaces={1}{2}", numTabs, numSpaces, mixed ? ", mixed" : "");
+            Whitespace ws = (beforeTabs > 0) ? (beforeSpaces > 0 ? Whitespace.Mixed : Whitespace.Tabs) : Whitespace.Spaces;
+
+            sb.AppendFormat("\"{0}\", {1}", this.InputFileName, Enum.GetName(typeof(Whitespace), ws).ToLower());
 
             if (this.ConvertMode.HasValue)
             {
-                CountBolSpacesAndTabs(lines, out numTabs, out numSpaces);
-                sb.AppendFormat(" -> tabs={0}, spaces={1}", numTabs, numSpaces);
+                int afterTabs, afterSpaces;
+
+                CountBolSpacesAndTabs(lines, out afterTabs, out afterSpaces);
+
+                if (afterTabs != beforeTabs || afterSpaces != beforeSpaces)
+                {
+                    using (StreamWriter writer = new StreamWriter(this.OutputFileName))
+                    {
+                        foreach (var line in lines)
+                        {
+                            writer.Write(line);
+                        }
+                    }
+
+                    sb.AppendFormat(" -> {0}", afterTabs > 0 ? "tabs" : "spaces");
+                }
             }
 
             WriteMessage(sb.ToString());
         }
 
-        public void CountBolSpacesAndTabs(List<string> lines, out int numTabs, out int numSpaces)
+        public void CountBolSpacesAndTabs(List<string> lines, out int numBolTabs, out int numBolSpaces)
         {
-            numSpaces = 0;
-            numTabs = 0;
+            numBolSpaces = 0;
+            numBolTabs = 0;
             bool inStringConst = false;
 
             foreach (string line in lines)
             {
-                bool atBol = true;
+                bool bol = true;
 
                 for (int i = 0; i < line.Length; i++)
                 {
@@ -144,14 +150,14 @@ namespace Tools
                             inStringConst = true;
                     }
 
-                    if (atBol)
+                    if (bol && !inStringConst)
                     {
                         if (c == ' ')
-                            numSpaces++;
+                            numBolSpaces++;
                         else if (c == '\t')
-                            numTabs++;
+                            numBolTabs++;
                         else
-                            atBol = false;
+                            bol = false;
                     }
                 }
             }
@@ -165,26 +171,36 @@ namespace Tools
             // Convert to a list of lines, preserving the end-of-lines
             List<string> lines = new List<string>();
             int s = 0;
+            int i = 0;
 
-            for (int i = 0; i < fileContents.Length; i++)
+            while (i < fileContents.Length)
             {
                 char c = fileContents[i];
+                char c1 = i < fileContents.Length - 1 ? fileContents[i + 1] : '\0';
 
                 if (c == '\r')
                 {
                     i++;
 
-                    if (i < fileContents.Length && fileContents[i] == '\n')
+                    if (c1 == '\n')
                         i++;
                 }
                 else if (c == '\n')
+                {
                     i++;
+                }
                 else
+                {
+                    i++;
                     continue;
+                }
 
                 lines.Add(fileContents.Substring(s, i - s));
                 s = i;
             }
+
+            if (s != i)
+                lines.Add(fileContents.Substring(s, i - s));
 
             return lines;
         }

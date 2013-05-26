@@ -7,7 +7,8 @@ public class Program
     {
         File.WriteAllText(
             "test.txt", 
-            "    a\n" + 
+            "    a\n" +
+            "\n" + 
             "\tb\n" + 
             " \t   c = @\"1\"; c1 = @\"2\"\n" + 
             "  d; d1\t; d2\n" + 
@@ -16,6 +17,9 @@ public class Program
             "    @\"1\n" + 
             "\t1\n" + 
             "    2\"\n" + 
-            "f\n");
+            "f\n" +
+            "\n" +
+            "\tg\n" +
+            "\n");
     }
 }

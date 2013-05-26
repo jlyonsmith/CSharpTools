@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Chalk")]
 [assembly: AssemblyDescription("Version number updating tool")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
-[assembly: AssemblyProduct("ToolBelt")]
+[assembly: AssemblyProduct(".NET Coding Tools")]
 [assembly: AssemblyCopyright("Copyright © John Lyon-Smith 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
