@@ -16,7 +16,7 @@ namespace Tools
         public enum LineEnding
         {
             Auto,
-            Mixed = Auto,
+            Mixed,
             Cr,
             Lf,
             CrLf
