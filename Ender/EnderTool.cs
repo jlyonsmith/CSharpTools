@@ -16,6 +16,7 @@ namespace Tools
         public enum LineEnding
         {
             Auto,
+            Mixed = Auto,
             Cr,
             Lf,
             CrLf
@@ -110,13 +111,13 @@ namespace Tools
                 }
             }
 
-            int numEndings = 
-                (numCr > 0 ? 1 : 0) + (numLf > 0 ? 1 : 0) + (numCrLf > 0 ? 1 : 0);
+            int numEndings = (numCr > 0 ? 1 : 0) + (numLf > 0 ? 1 : 0) + (numCrLf > 0 ? 1 : 0);
             StringBuilder sb = new StringBuilder();
+            LineEnding le = numEndings > 1 ? LineEnding.Mixed : numCr > 0 ? LineEnding.Cr : numLf > 0 ? LineEnding.Lf : LineEnding.CrLf;
 
             sb.AppendFormat(
-                "\"{0}\", lines={1}, cr={2}, lf={3}, crlf={4}{5}", 
-                this.InputFileName, numLines, numCr, numLf, numCrLf, numEndings > 1 ? ", mixed" : "");
+                "\"{0}\", {1}", 
+                this.InputFileName, Enum.GetName(typeof(LineEnding), le).ToLower());
 
             if (!ConvertMode.HasValue)
             {
@@ -190,12 +191,8 @@ namespace Tools
                 }
                 
                 sb.AppendFormat(
-                    " -> \"{0}\", lines={1}, {2}={3}", 
-                    OutputFileName, 
-                    newNumLines + 1,
-                    ConvertMode.Value == LineEnding.Cr ? "cr" : 
-                    ConvertMode.Value == LineEnding.Lf ? "lf" : "crlf",
-                    newNumLines);
+                    " -> \"{0}\", {1}", 
+                    OutputFileName, Enum.GetName(typeof(LineEnding), this.ConvertMode.Value).ToLower());
             }
 
             WriteMessage(sb.ToString());

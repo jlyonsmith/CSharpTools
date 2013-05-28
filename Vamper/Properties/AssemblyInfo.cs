@@ -8,13 +8,13 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Release")]
 #endif
 
-[assembly: AssemblyTitle("Chalk")]
-[assembly: AssemblyDescription("Version number updating tool")]
+[assembly: AssemblyTitle("Version Stamper")]
+[assembly: AssemblyDescription("Creates version stamps for various types of files in C# projects")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
 [assembly: AssemblyProduct(".NET Coding Tools")]
-[assembly: AssemblyCopyright("Copyright © John Lyon-Smith 2012")]
+[assembly: AssemblyCopyright("Copyright © John Lyon-Smith 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyVersion("1.7.0.0")]
-[assembly: AssemblyFileVersion("1.7.20317.4")]
+[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: AssemblyFileVersion("2.0.10527.1")]

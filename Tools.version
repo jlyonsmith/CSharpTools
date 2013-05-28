@@ -1,13 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Version>
-	<Files>
-		<File>Hammer/Properties/AssemblyInfo.cs</File>
-		<File>Buckle//Properties/AssemblyInfo.cs</File>
-		<File>Hammer/Properties/AssemblyInfo.cs</File>
-		<File>Chisel/Properties/AssemblyInfo.cs</File>
-	</Files>
-	<Major>2</Major>
-	<Minor>0</Minor>
-	<Revision>0</Revision>
-	<Build>0</Build>
-	<StartYear>2013</StartYear>
+  <Files>
+    <File>Ender/Properties/AssemblyInfo.cs</File>
+    <File>Spacer/Properties/AssemblyInfo.cs</File>
+    <File>Vamper/Properties/AssemblyInfo.cs</File>
+    <File>Strapper/Properties/AssemblyInfo.cs</File>
+  </Files>
+  <Major>2</Major>
+  <Minor>0</Minor>
+  <Build>10527</Build>
+  <Revision>1</Revision>
+  <StartYear>2013</StartYear>
 </Version>

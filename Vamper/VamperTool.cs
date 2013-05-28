@@ -1,5 +1,6 @@
 using System;
 using System.Xml;
+using System.Xml.Linq;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -10,9 +11,9 @@ namespace Tools
 {
     public class VamperTool
     {
-        private string filesAtom;
         public bool HasOutputErrors { get; set; }
         public bool ShowUsage { get; set; }
+        public bool DoUpdate { get; set; }
 
         public VamperTool()
         {
@@ -35,7 +36,8 @@ namespace Tools
                 WriteMessage("{0}\n", description);
                 WriteMessage("Usage: mono {0}.exe ...\n", name);
                 WriteMessage(@"Arguments:
-          [-h] or [-?]            Show help
+    [-u]                Actually do the version stamp update.
+    [-h] or [-?]        Show this help.
 ");
                 return;
             }
@@ -92,9 +94,11 @@ namespace Tools
             string versionFull = String.Format("{0}.{1}.{2}.{3}", major, minor, build, revision);
             string versionFullCsv = versionFull.Replace('.', ',');
             
-            WriteMessage("New version is {0}", versionFull);
-            WriteMessage("Updating version information in files:");
-            
+            WriteMessage("New version will be {0}", versionFull);
+           
+            if (this.DoUpdate)
+                WriteMessage("Updating version information:");
+
             foreach (string file in fileList)
             {
                 string path = Path.Combine(Path.GetDirectoryName(projectSln), file);
@@ -102,9 +106,12 @@ namespace Tools
                 if (!File.Exists(path))
                 {
                     WriteMessage("File '{0}' does not exist", path);
-                    break;
+                    continue;
                 }
-                
+
+                if (!this.DoUpdate)
+                    continue;
+
                 switch (Path.GetExtension(path))
                 {
                 case ".cs":
@@ -144,95 +151,37 @@ namespace Tools
                 
                 WriteMessage(path);
             }
-            
-            WriteVersionFile(versionFile, fileList, major, minor, build, revision, startYear);
+
+            if (this.DoUpdate)
+                WriteVersionFile(versionFile, fileList, major, minor, build, revision, startYear);
         }
 
-        private void ReadVersionFile(
-            string parsedPath, out string[] fileList, out int major, out int minor, out int build, out int revision, out int startYear)
+        private static void ReadVersionFile(
+            string versionFileName, out string[] fileList, out int major, out int minor, out int build, out int revision, out int startYear)
         {
-            XmlReader reader = null;
-            
-            using (reader = XmlReader.Create(parsedPath))
-            {
-                filesAtom = reader.NameTable.Add("Files");
-
-                reader.MoveToContent();
-                reader.ReadStartElement("Version");
-                reader.MoveToContent();
-                major = reader.ReadElementContentAsInt("Major", "");
-                reader.MoveToContent();
-                minor = reader.ReadElementContentAsInt("Minor", "");
-                reader.MoveToContent();
-                build = reader.ReadElementContentAsInt("Build", "");
-                reader.MoveToContent();
-                revision = reader.ReadElementContentAsInt("Revision", "");
-                reader.MoveToContent();
-                startYear = reader.ReadElementContentAsInt("StartYear", "");
-                reader.MoveToContent();
-
-                fileList = ReadFilesElement(reader);
-
-                reader.ReadEndElement(); // Version
-            }
+            XDocument versionDoc = XDocument.Load(versionFileName);
+            fileList = (from e in versionDoc.Descendants("File") select e).Select(x => x.Value).ToArray();
+            major = (int)(from e in versionDoc.Descendants("Major") select e).First();
+            minor = (int)(from e in versionDoc.Descendants("Minor") select e).First();
+            build = (int)(from e in versionDoc.Descendants("Build") select e).First();
+            revision = (int)(from e in versionDoc.Descendants("Revision") select e).First();
+            startYear = (int)(from e in versionDoc.Descendants("StartYear") select e).First();
         }
 
-        private string[] ReadFilesElement(XmlReader reader)
+        private static void WriteVersionFile(string versionFileName, string[] fileList, int major, int minor, int build, int revision, int startYear)
         {
-            List<string> fileList = new List<string>();
+            XElement doc = 
+                new XElement("Version",
+                    new XElement("Files", fileList.Select(f => new XElement("File", f)).ToArray()),
+                    new XElement("Major", major),
+                    new XElement("Minor", minor),
+                    new XElement("Build", build),
+                    new XElement("Revision", revision),
+                    new XElement("StartYear", startYear));
 
-            reader.ReadStartElement(filesAtom);
-            reader.MoveToContent();
-            
-            while (true)
-            {
-                if (String.ReferenceEquals(reader.Name, filesAtom))
-                {
-                    reader.ReadEndElement();
-                    reader.MoveToContent();
-                    break;
-                }
-
-                string file = reader.ReadElementString("File");
-
-#if MONOTOUCH
-                file = file.Replace("\\", "/");
-#else
-                file = file.Replace("/", "\\");
-#endif
-
-                fileList.Add(file);
-                reader.MoveToContent();
-            }
-
-            return fileList.ToArray();
+            doc.Save(versionFileName);
         }
 
-        private static void WriteVersionFile(string versionFile, string[] fileList, int major, int minor, int build, int revision, int startYear)
-        {
-            XmlWriterSettings settings = new XmlWriterSettings();
-            
-            settings.Indent = true;
-            settings.IndentChars = "  ";
-            
-            using (XmlWriter writer = XmlWriter.Create(versionFile, settings))
-            {
-                writer.WriteStartElement("Version");
-                writer.WriteElementString("Major", major.ToString());
-                writer.WriteElementString("Minor", minor.ToString());
-                writer.WriteElementString("Build", build.ToString());
-                writer.WriteElementString("Revision", revision.ToString());
-                writer.WriteElementString("StartYear", startYear.ToString());
-                writer.WriteStartElement("Files");
-                foreach (var file in fileList)
-                {
-                    writer.WriteElementString("File", file);
-                }
-                writer.WriteEndElement(); // Files
-                writer.WriteEndElement(); // Version
-            }
-        }
-        
         static void UpdateSvgContentVersion(string file, string versionMajorMinorBuild)
         {
             string contents = File.ReadAllText(file);
@@ -412,6 +361,9 @@ namespace Tools
                     case 'h':
                     case '?':
                         ShowUsage = true;
+                        return;
+                    case 'u':
+                        DoUpdate = true;
                         return;
                     default:
                         throw new ApplicationException(string.Format("Unknown argument '{0}'", arg[1]));

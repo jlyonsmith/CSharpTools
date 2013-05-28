@@ -117,7 +117,7 @@ namespace Tools
                         }
                     }
 
-                    sb.AppendFormat(" -> {0}", afterTabs > 0 ? "tabs" : "spaces");
+                    sb.AppendFormat(" -> \"{0}\", {1}", this.OutputFileName, afterTabs > 0 ? "tabs" : "spaces");
                 }
             }
 
