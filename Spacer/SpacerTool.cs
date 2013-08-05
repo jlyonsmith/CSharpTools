@@ -107,6 +107,14 @@ namespace Tools
 
                 CountBolSpacesAndTabs(lines, out afterTabs, out afterSpaces);
 
+                ws = (afterTabs > 0) ? (afterSpaces > 0 ? Whitespace.Mixed : Whitespace.Tabs) : Whitespace.Spaces;
+
+                if (ws == Whitespace.Mixed)
+                {
+                    WriteError("Program was unable to do the conversion - file is still mixed.  Is this C# file?");
+                    return;
+                }
+
                 if (afterTabs != beforeTabs || afterSpaces != beforeSpaces)
                 {
                     using (StreamWriter writer = new StreamWriter(this.OutputFileName))
@@ -210,22 +218,35 @@ namespace Tools
             // Expand tabs anywhere on a line, but not inside @"..." strings
 
             StringBuilder sb = new StringBuilder();
-            bool inStringConst = false;
+            bool inMultiLineString = false;
 
             for (int i = 0; i < lines.Count; i++)
             {
                 string line = lines[i];
+                bool inString = false;
 
                 for (int j = 0; j < line.Length; j++)
                 {
+                    char c_1 = j > 0 ? line[j - 1] : '\0';
                     char c = line[j];
                     char c1 = j < line.Length - 1 ? line[j + 1] : '\0';
 
-                    if (inStringConst)
+                    if (inString)
+                    {
+                        if (c == '"' && c_1 != '\\')
+                            inString = false;
+                    }
+                    else
+                    {
+                        if (c == '"')
+                            inString = true;
+                    }
+
+                    if (inMultiLineString)
                     {
                         if (c == '"' && c1 != '"')
                         {
-                            inStringConst = false;
+                            inMultiLineString = false;
                         }
                     }
                     else
@@ -238,12 +259,12 @@ namespace Tools
                             sb.Append(' ', numSpaces);
                             continue;
                         }
-                        else if (c == '@' && c1 == '"')
+                        else if (c == '@' && c1 == '"' && !inString)
                         {
                             sb.Append(c);
                             sb.Append(c1);
                             j++;
-                            inStringConst = true;
+                            inMultiLineString = true;
                             continue;
                         }
                     }

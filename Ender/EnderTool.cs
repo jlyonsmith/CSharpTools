@@ -56,7 +56,7 @@ namespace Tools
                 WriteMessage(@"Arguments:
     <text-file>              Input text file.
     [-o:<output-file>]       Specify different name for output file.
-    [-f:<line-endings>]      Fix line endings to be cr, lf, crlf or auto.
+    [-m:<line-endings>]      Fix line endings to be cr, lf, crlf or auto.
     [-h] or [-?]             Show help.
 ");
                 return;
@@ -213,7 +213,7 @@ namespace Tools
                     case 'o':
                         CheckAndSetArgument(arg, ref OutputFileName); 
                         continue;
-                    case 'f':
+                    case 'm':
                         string lineEndings = (ConvertMode.HasValue ? ConvertMode.Value.ToString() : null);
                         CheckAndSetArgument(arg, ref lineEndings); 
                         ConvertMode = (LineEnding)Enum.Parse(typeof(LineEnding), lineEndings, true);

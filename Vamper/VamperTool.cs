@@ -6,14 +6,30 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
+using System.Text;
 
 namespace Tools
 {
     public class VamperTool
     {
+        private class FileType
+        {
+            public string name;
+            public Regex[] fileSpecs;
+            public Tuple<string, string>[] updates;
+            public string[] writes;
+        }
+
         public bool HasOutputErrors { get; set; }
         public bool ShowUsage { get; set; }
         public bool DoUpdate { get; set; }
+        public bool WriteDefaultFiles { get; set; }
+
+        private int major;
+        private int minor;
+        private int build;
+        private int revision;
+        private int startYear;
 
         public VamperTool()
         {
@@ -36,12 +52,13 @@ namespace Tools
                 WriteMessage("{0}\n", description);
                 WriteMessage("Usage: mono {0}.exe ...\n", name);
                 WriteMessage(@"Arguments:
+    [-n]                Write default version files out to current directory.
     [-u]                Actually do the version stamp update.
     [-h] or [-?]        Show this help.
 ");
                 return;
             }
-            
+
             string projectSln = GetProjectSolution();
             
             if (projectSln == null)
@@ -54,18 +71,15 @@ namespace Tools
             string projectFileName = Path.GetFileName(projectSln);
             string projectName = projectFileName.Substring(0, projectFileName.IndexOf('.'));
             string versionFile = Path.Combine(Path.GetDirectoryName(projectSln), projectName + ".version");
-            
+            string versionConfigFile = versionFile + ".config";
+
             WriteMessage("Version file is '{0}'", versionFile);
-            
-            int major;
-            int minor;
-            int build;
-            int revision;
-            int startYear;
+            WriteMessage("Version config file is '{0}'", versionConfigFile);
+
             string[] fileList;
             
             if (File.Exists(versionFile))
-                ReadVersionFile(versionFile, out fileList, out major, out minor, out build, out revision, out startYear);
+                fileList = ReadVersionFile(versionFile);
             else
             {
                 major = 1;
@@ -87,88 +101,135 @@ namespace Tools
             {
                 revision++;
             }
-            
-            string versionBuildAndRevision = String.Format("{0}.{1}", build, revision);
-            string versionMajorAndMinor = String.Format("{0}.{1}", major, minor);
-            string versionMajorMinorAndBuild = String.Format("{0}.{1}.{2}", major, minor, build);
-            string versionFull = String.Format("{0}.{1}.{2}.{3}", major, minor, build, revision);
-            string versionFullCsv = versionFull.Replace('.', ',');
-            
-            WriteMessage("New version will be {0}", versionFull);
+
+            WriteMessage("New version will be {0}.{1}.{2}.{3}", major, minor, build, revision);
            
             if (this.DoUpdate)
                 WriteMessage("Updating version information:");
+
+            if (!File.Exists(versionConfigFile))
+            {
+                using (StreamReader reader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("Tools.Default.version.config")))
+                {
+                    File.WriteAllText(versionConfigFile, reader.ReadToEnd());
+                }
+            }
+
+            List<FileType> fileTypes = ReadVersionConfigFile(versionConfigFile);
 
             foreach (string file in fileList)
             {
                 string path = Path.Combine(Path.GetDirectoryName(projectSln), file);
                 
-                if (!File.Exists(path))
-                {
-                    WriteMessage("File '{0}' does not exist", path);
-                    continue;
-                }
-
                 if (!this.DoUpdate)
                     continue;
 
-                switch (Path.GetExtension(path))
+                bool match = false;
+
+                foreach (var fileType in fileTypes)
                 {
-                case ".cs":
-                    UpdateCSVersion(path, versionMajorAndMinor, versionFull);
-                    break;
-                    
-                case ".rc":
-                    UpdateRCVersion(path, versionFull, versionFullCsv);
-                    break;
-                    
-                case ".wxi":
-                    UpdateWxiVersion(path, versionMajorAndMinor, versionBuildAndRevision);
-                    break;
-                    
-                case ".wixproj":
-                case ".proj":
-                    UpdateProjVersion(path, versionFull, projectName);
-                    break;
-                    
-                case ".vsixmanifest":
-                    UpdateVsixManifestVersion(path, versionFull);
-                    break;
-                    
-                case ".config":
-                    UpdateConfigVersion(path, versionMajorAndMinor);
-                    break;
-                    
-                case ".svg":
-                    UpdateSvgContentVersion(path, versionMajorMinorAndBuild);
-                    break;
-                    
-                case ".xml":
-                    if (Path.GetFileNameWithoutExtension(file) == "WMAppManifest")
-                        UpdateWMAppManifestContentVersion(path, versionMajorAndMinor);
+                    foreach (var fileSpec in fileType.fileSpecs)
+                    {
+                        if (fileSpec.IsMatch(path))
+                        {
+                            match = true;
+                            break;
+                        }
+                    }
+
+                    if (!match)
+                        continue;
+
+                    if (fileType.updates.Length > 0 && !File.Exists(path))
+                    {
+                        WriteMessage("File '{0}' does not exist to update", path);
+                        continue;
+                    }
+
+                    foreach (var update in fileType.updates)
+                    {
+                        string contents = File.ReadAllText(path);
+
+                        contents = Regex.Replace(contents, update.Item1, update.Item2);
+
+                        File.WriteAllText(path, contents);
+                    }
+
+                    foreach (var write in fileType.writes)
+                    {
+                        File.WriteAllText(path, write);
+                    }
+
                     break;
                 }
-                
+
+                if (!match)
+                {
+                    WriteError("File '{0}' has no matching file type in the .version.config file", path);
+                    return;
+                }
+
                 WriteMessage(path);
             }
 
             if (this.DoUpdate)
-                WriteVersionFile(versionFile, fileList, major, minor, build, revision, startYear);
+                WriteVersionFile(versionFile, fileList);
         }
 
-        private static void ReadVersionFile(
-            string versionFileName, out string[] fileList, out int major, out int minor, out int build, out int revision, out int startYear)
+        private static Regex WildcardToRegex(string pattern)
+        {
+            return new Regex("^" + Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".") + "$"); 
+        }
+
+        private string SubstituteVersions(string input)
+        {
+            StringBuilder sb = new StringBuilder(input);
+
+            sb.Replace("${Major}", major.ToString());
+            sb.Replace("${Minor}", minor.ToString());
+            sb.Replace("${Build}", build.ToString());
+            sb.Replace("${Revision}", revision.ToString());
+            sb.Replace("${StartYear}", startYear.ToString());
+
+            return sb.ToString();
+        }
+
+        private List<FileType> ReadVersionConfigFile(string versionConfigFileName)
+        {
+            XDocument versionConfigFile = XDocument.Load(versionConfigFileName);
+            var fileTypes = new List<FileType>();
+
+            foreach (var fileTypeElement in versionConfigFile.Descendants("FileType"))
+            {
+                var fileType = new FileType();
+
+                fileType.name = (string)fileTypeElement.Element("Name");
+                fileType.fileSpecs = fileTypeElement.Elements("FileSpec").Select<XElement, Regex>(x => WildcardToRegex((string)x)).ToArray();
+                fileType.updates = fileTypeElement.Elements("Update").Select<XElement, Tuple<string, string>>(
+                    x => new Tuple<string, string>((string)x.Element("Search"), SubstituteVersions((string)x.Element("Replace")))).ToArray();
+                fileType.writes = fileTypeElement.Elements("Write").Select(x => SubstituteVersions((string)x)).ToArray();
+
+                fileTypes.Add(fileType);
+            }
+
+            return fileTypes;
+        }
+
+        private string[] ReadVersionFile(string versionFileName)
         {
             XDocument versionDoc = XDocument.Load(versionFileName);
-            fileList = (from e in versionDoc.Descendants("File") select e).Select(x => x.Value).ToArray();
-            major = (int)(from e in versionDoc.Descendants("Major") select e).First();
-            minor = (int)(from e in versionDoc.Descendants("Minor") select e).First();
-            build = (int)(from e in versionDoc.Descendants("Build") select e).First();
-            revision = (int)(from e in versionDoc.Descendants("Revision") select e).First();
-            startYear = (int)(from e in versionDoc.Descendants("StartYear") select e).First();
+            var fileList = versionDoc.Descendants("File").Select(x => (string)x).ToArray();
+
+            major = (int)(versionDoc.Descendants("Major").First());
+            minor = (int)(versionDoc.Descendants("Minor").First());
+            build = (int)(versionDoc.Descendants("Build").First());
+            revision = (int)(versionDoc.Descendants("Revision").First());
+            startYear = (int)(versionDoc.Descendants("StartYear").First());
+
+            return fileList;
         }
 
-        private static void WriteVersionFile(string versionFileName, string[] fileList, int major, int minor, int build, int revision, int startYear)
+        private void WriteVersionFile(string versionFileName, string[] fileList)
         {
             XElement doc = 
                 new XElement("Version",
@@ -182,131 +243,6 @@ namespace Tools
             doc.Save(versionFileName);
         }
 
-        static void UpdateSvgContentVersion(string file, string versionMajorMinorBuild)
-        {
-            string contents = File.ReadAllText(file);
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'VERSION )([0-9]+\.[0-9]+\.[0-9]+)",
-                "${before}" + versionMajorMinorBuild);
-            
-            File.WriteAllText(file, contents);
-        }
-        
-        static void UpdateWMAppManifestContentVersion(string file, string versionMajorMinor)
-        {
-            string contents = File.ReadAllText(file);
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'Version="")([0-9]+\.[0-9]+)(?'after'\.[0-9]+\.[0-9]+"")",
-                "${before}" + versionMajorMinor + "${after}");
-            
-            File.WriteAllText(file, contents);
-        }
-        
-        static void UpdateCSVersion(string file, string versionMajorMinor, string version)
-        {
-            string contents = File.ReadAllText(file);
-            
-            // Note that we use named substitutions because otherwise Regex gets confused.  "$1" + "1.0.0.0" = "$11.0.0.0".  There is no $11.
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'AssemblyVersion\("")([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)(?'after'""\))",
-                "${before}" + versionMajorMinor + ".0.0${after}");
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'AssemblyFileVersion\("")([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)(?'after'""\))",
-                "${before}" + version + "${after}");
-            
-            File.WriteAllText(file, contents);
-        }
-        
-        static void UpdateRCVersion(string file, string version, string versionCsv)
-        {
-            string contents = File.ReadAllText(file);
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'FILEVERSION )([0-9]+,[0-9]+,[0-9]+,[0-9]+)",
-                "${before}" + versionCsv);
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'PRODUCTVERSION )([0-9]+,[0-9]+,[0-9]+,[0-9]+)",
-                "${before}" + versionCsv);
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'""FileVersion"",[ \t]*"")([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)(?'after'"")",
-                "${before}" + version + "${after}");
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'""ProductVersion"",[ \t]*"")([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)(?'after'"")",
-                "${before}" + version + "${after}");
-            
-            File.WriteAllText(file, contents);
-        }
-        
-        static void UpdateWxiVersion(string file, string versionMajorMinor, string versionBuildAndRevision)
-        {
-            string contents = File.ReadAllText(file);
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'ProductVersion = "")([0-9]+\.[0-9]+)(?'after'"")",
-                "${before}" + versionMajorMinor + "${after}");
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'ProductBuild = "")([0-9]+\.([0-9]|[1-9][0-9]))(?'after'"")",
-                "${before}" + versionBuildAndRevision + "${after}");
-            
-            File.WriteAllText(file, contents);
-        }
-        
-        static void UpdateConfigVersion(string file, string versionMajorMinor)
-        {
-            // In .config files we are looking for the section that contains an assembly reference 
-            // for the section handler.
-            string contents = File.ReadAllText(file);
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before', +Version=)\d+\.\d+(?'after'\.0\.0 *,)",
-                "${before}" + versionMajorMinor + "${after}");
-            
-            File.WriteAllText(file, contents);
-        }
-        
-        static void UpdateProjVersion(string file, string version, string projectName)
-        {
-            string contents = File.ReadAllText(file);
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'<OutputName>" + projectName + @"_)([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)(?'after'</OutputName>)",
-                "${before}" + version + "${after}");
-            
-            File.WriteAllText(file, contents);
-        }
-        
-        static void UpdateVsixManifestVersion(string file, string version)
-        {
-            string contents = File.ReadAllText(file);
-            
-            contents = Regex.Replace(
-                contents,
-                @"(?'before'<Version>)([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)(?'after'</Version>)",
-                "${before}" + version + "${after}");
-            
-            File.WriteAllText(file, contents);
-        }
-        
         private string GetProjectSolution()
         {
             string fileSpec = "*.sln";

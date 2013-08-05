@@ -8,11 +8,11 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Release")]
 #endif
 
-[assembly: AssemblyTitle("Strapper")]
-[assembly: AssemblyDescription("String Resource Strongly Typed Class Wrapper Generator")]
+[assembly: AssemblyTitle("Projector C# Copier")]
+[assembly: AssemblyDescription("Makes a copy of a project, changing the core project file names and GUIDs")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
 [assembly: AssemblyProduct(".NET Coding Tools")]
-[assembly: AssemblyCopyright("Copyright © John Lyon-Smith 2013")]
+[assembly: AssemblyCopyright("Copyright (c) John Lyon-Smith 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]

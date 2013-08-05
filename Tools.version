@@ -5,10 +5,11 @@
     <File>Spacer/Properties/AssemblyInfo.cs</File>
     <File>Vamper/Properties/AssemblyInfo.cs</File>
     <File>Strapper/Properties/AssemblyInfo.cs</File>
+    <File>Projector/Properties/AssemblyInfo.cs</File>
   </Files>
   <Major>2</Major>
   <Minor>0</Minor>
-  <Build>10527</Build>
-  <Revision>1</Revision>
+  <Build>10804</Build>
+  <Revision>3</Revision>
   <StartYear>2013</StartYear>
 </Version>

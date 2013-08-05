@@ -19,6 +19,7 @@ public class Program
             "    2\"\n" + 
             "f\n" +
             "\n" +
+            "    \"@\"\n" +
             "\tg\n" +
             "\n");
     }

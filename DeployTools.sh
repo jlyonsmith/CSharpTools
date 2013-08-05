@@ -14,3 +14,4 @@ deploy Ender
 deploy Spacer
 deploy Vamper
 deploy Strapper
+deploy Projector
