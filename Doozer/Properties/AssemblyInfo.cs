@@ -8,11 +8,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Release")]
 #endif
 
-[assembly: AssemblyTitle("C# Spacer Tool")]
-[assembly: AssemblyDescription("Text file tab/space reporter and fixer. " +
-                               "The tool reports on beginning-of-line tabs/spaces. " + 
-                               "All tabs not at the beginning of a line are replaced with spaces. " + 
-                               "Spaces/tabs inside C# multi-line strings are ignored.")]
+[assembly: AssemblyTitle("Doozer C# Project TODO Scraper")]
+[assembly: AssemblyDescription("Finds all the TODO comments in a list of projects")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
 [assembly: AssemblyProduct(".NET Coding Tools")]
 [assembly: AssemblyCopyright("Copyright (c) John Lyon-Smith 2013")]

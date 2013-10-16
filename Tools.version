@@ -6,10 +6,12 @@
     <File>Vamper/Properties/AssemblyInfo.cs</File>
     <File>Strapper/Properties/AssemblyInfo.cs</File>
     <File>Projector/Properties/AssemblyInfo.cs</File>
+    <File>Liner/Properties/AssemblyInfo.cs</File>
+    <File>Doozer/Properties/AssemblyInfo.cs</File>
   </Files>
   <Major>2</Major>
   <Minor>0</Minor>
-  <Build>10804</Build>
-  <Revision>3</Revision>
+  <Build>10825</Build>
+  <Revision>0</Revision>
   <StartYear>2013</StartYear>
 </Version>

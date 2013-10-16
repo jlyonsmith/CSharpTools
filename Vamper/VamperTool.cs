@@ -52,7 +52,6 @@ namespace Tools
                 WriteMessage("{0}\n", description);
                 WriteMessage("Usage: mono {0}.exe ...\n", name);
                 WriteMessage(@"Arguments:
-    [-n]                Write default version files out to current directory.
     [-u]                Actually do the version stamp update.
     [-h] or [-?]        Show this help.
 ");
@@ -142,8 +141,8 @@ namespace Tools
 
                     if (fileType.updates.Length > 0 && !File.Exists(path))
                     {
-                        WriteMessage("File '{0}' does not exist to update", path);
-                        continue;
+                        WriteError("File '{0}' does not exist to update", path);
+                        return;
                     }
 
                     foreach (var update in fileType.updates)

@@ -8,11 +8,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Release")]
 #endif
 
-[assembly: AssemblyTitle("C# Spacer Tool")]
-[assembly: AssemblyDescription("Text file tab/space reporter and fixer. " +
-                               "The tool reports on beginning-of-line tabs/spaces. " + 
-                               "All tabs not at the beginning of a line are replaced with spaces. " + 
-                               "Spaces/tabs inside C# multi-line strings are ignored.")]
+[assembly: AssemblyTitle("Lindex C# Line Indexer")]
+[assembly: AssemblyDescription("Creates an index of start offset of lines in a text file")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
 [assembly: AssemblyProduct(".NET Coding Tools")]
 [assembly: AssemblyCopyright("Copyright (c) John Lyon-Smith 2013")]
