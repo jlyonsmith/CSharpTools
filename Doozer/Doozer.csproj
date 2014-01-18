@@ -9,6 +9,8 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Doozer</RootNamespace>
     <AssemblyName>Doozer</AssemblyName>
+    <ReleaseVersion>1.0</ReleaseVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
