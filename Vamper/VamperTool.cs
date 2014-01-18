@@ -119,17 +119,14 @@ namespace Tools
             foreach (string file in fileList)
             {
                 string path = Path.Combine(Path.GetDirectoryName(projectSln), file);
-                
-                if (!this.DoUpdate)
-                    continue;
-
+                string fileOnly = Path.GetFileName(file);
                 bool match = false;
 
                 foreach (var fileType in fileTypes)
                 {
                     foreach (var fileSpec in fileType.fileSpecs)
                     {
-                        if (fileSpec.IsMatch(path))
+                        if (fileSpec.IsMatch(fileOnly))
                         {
                             match = true;
                             break;
@@ -141,22 +138,24 @@ namespace Tools
 
                     if (fileType.updates.Length > 0 && !File.Exists(path))
                     {
-                        WriteError("File '{0}' does not exist to update", path);
-                        return;
+                        WriteWarning("File '{0}' does not exist to update", path);
                     }
 
-                    foreach (var update in fileType.updates)
+                    if (this.DoUpdate)
                     {
-                        string contents = File.ReadAllText(path);
-
-                        contents = Regex.Replace(contents, update.Item1, update.Item2);
-
-                        File.WriteAllText(path, contents);
-                    }
-
-                    foreach (var write in fileType.writes)
-                    {
-                        File.WriteAllText(path, write);
+                        foreach (var update in fileType.updates)
+                        {
+                            string contents = File.ReadAllText(path);
+    
+                            contents = Regex.Replace(contents, update.Item1, update.Item2);
+    
+                            File.WriteAllText(path, contents);
+                        }
+    
+                        foreach (var write in fileType.writes)
+                        {
+                            File.WriteAllText(path, write);
+                        }
                     }
 
                     break;

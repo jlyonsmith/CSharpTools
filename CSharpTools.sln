@@ -3,9 +3,10 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{94644E31-5B17-492F-9586-08BBF9817C30}"
 	ProjectSection(SolutionItems) = preProject
-		Tools.version = Tools.version
 		DeployTools.sh = DeployTools.sh
 		RunTool.sh = RunTool.sh
+		CSharpTools.version = CSharpTools.version
+		CSharpTools.version.config = CSharpTools.version.config
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ender", "Ender\Ender.csproj", "{AC21794C-3783-4048-913C-A9A4CEEC23B2}"
@@ -60,7 +61,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Ender\Ender.csproj
+		StartupItem = Vamper\Vamper.csproj
 		Policies = $0
 		$0.DotNetNamingPolicy = $1
 		$1.DirectoryNamespaceAssociation = None
@@ -82,7 +83,6 @@ Global
 		$3.EventRemoveBraceStyle = NextLine
 		$3.StatementBraceStyle = NextLine
 		$3.ElseNewLinePlacement = NewLine
-		$3.ElseIfNewLinePlacement = SameLine
 		$3.CatchNewLinePlacement = NewLine
 		$3.FinallyNewLinePlacement = NewLine
 		$3.WhileNewLinePlacement = NewLine
