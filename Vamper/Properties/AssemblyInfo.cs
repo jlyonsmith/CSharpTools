@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 #endif
 
 [assembly: AssemblyTitle("Version Stamper")]
-[assembly: AssemblyDescription("Creates version stamps for various types of files in C# projects")]
+[assembly: AssemblyDescription("Stamps versions into project files")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
 [assembly: AssemblyProduct("C# Tools")]
 [assembly: AssemblyCopyright("Copyright © John Lyon-Smith 2013")]
@@ -17,4 +17,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: AssemblyVersion("2.0.0.0")]
-[assembly: AssemblyFileVersion("2.0.20118.2")]
+[assembly: AssemblyFileVersion("2.0.20306.0")]

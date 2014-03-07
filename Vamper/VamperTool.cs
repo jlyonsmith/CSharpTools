@@ -58,18 +58,18 @@ namespace Tools
                 return;
             }
 
-            string projectSln = GetProjectSolution();
+            string rootFile = GetProjectRootFile();
             
-            if (projectSln == null)
+            if (rootFile == null)
             {
-                WriteMessage("Cannot find .sln file to determine project root.");
+                return;
             }
             
-            WriteMessage("Project root is '{0}'", Path.GetDirectoryName(projectSln));
+            WriteMessage("Project root is '{0}'", Path.GetDirectoryName(rootFile));
             
-            string projectFileName = Path.GetFileName(projectSln);
+            string projectFileName = Path.GetFileName(rootFile);
             string projectName = projectFileName.Substring(0, projectFileName.IndexOf('.'));
-            string versionFile = Path.Combine(Path.GetDirectoryName(projectSln), projectName + ".version");
+            string versionFile = Path.Combine(Path.GetDirectoryName(rootFile), projectName + ".version");
             string versionConfigFile = versionFile + ".config";
 
             WriteMessage("Version file is '{0}'", versionFile);
@@ -118,7 +118,7 @@ namespace Tools
 
             foreach (string file in fileList)
             {
-                string path = Path.Combine(Path.GetDirectoryName(projectSln), file);
+                string path = Path.Combine(Path.GetDirectoryName(rootFile), file);
                 string fileOnly = Path.GetFileName(file);
                 bool match = false;
 
@@ -241,38 +241,34 @@ namespace Tools
             doc.Save(versionFileName);
         }
 
-        private string GetProjectSolution()
+        private string GetProjectRootFile()
         {
-            string fileSpec = "*.sln";
+            var fileSpecs = new string[] { "*.sln", "*.xcodeproj" };
 
-            try
+            string dir = Environment.CurrentDirectory;
+
+            foreach (var fileSpec in fileSpecs)
             {
-                string dir = Environment.CurrentDirectory;
-
                 do 
                 {
                     string[] files = Directory.GetFiles(dir, fileSpec);
-
+                
                     if (files.Length > 0)
                     {
                         return files[0];
                     }
-
+                
                     int i = dir.LastIndexOf(Path.DirectorySeparatorChar);
-
-                    if (i == -1)
+                
+                    if (i <= 0)
                         break;
-
+                
                     dir = dir.Substring(0, i);
                 }
                 while (true);
+            }
 
-                WriteError("Unable to find file '{0}' to determine project root", fileSpec);
-            }
-            catch (Exception e)
-            {
-                WriteError("Error looking for file '{0}'. {1}", fileSpec, e.Message);
-            }
+            WriteError("Unable to find '{0}' to determine project name and root", String.Join(new string(Path.PathSeparator, 1), fileSpecs));
 
             return null;
         }
