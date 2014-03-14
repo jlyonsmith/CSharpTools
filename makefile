@@ -31,7 +31,7 @@ endef
 
 .PHONY: default
 default:
-	$(error Specify 'dist' or 'install')
+	$(error Specify clean, dist or install)
 
 .PHONY: dist
 dist: $(SCRATCH) $(zipfile)
@@ -60,4 +60,5 @@ endif
 
 .PHONY: clean
 clean:
+	rm *.gz
 	rm -rf $(SCRATCH)
