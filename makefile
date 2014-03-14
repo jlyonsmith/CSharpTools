@@ -1,4 +1,4 @@
-CONFIG?=Debug
+CONFIG?=Release
 PREFIX?=prefix
 PREFIX:=$(abspath $(PREFIX))
 VERSION=2.0.20314
