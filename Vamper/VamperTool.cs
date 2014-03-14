@@ -23,7 +23,7 @@ namespace Tools
         public bool HasOutputErrors { get; set; }
         public bool ShowUsage { get; set; }
         public bool DoUpdate { get; set; }
-        public bool WriteDefaultFiles { get; set; }
+        public string VersionFile;
 
         private int major;
         private int minor;
@@ -58,22 +58,31 @@ namespace Tools
                 return;
             }
 
-            string rootFile = GetProjectRootFile();
+            string versionFile = this.VersionFile;
             
-            if (rootFile == null)
+            if (String.IsNullOrEmpty(versionFile))
             {
+                versionFile = GetVersionFile();
+            
+                if (versionFile == null)
+                {
+                    WriteError("Unable to find a .version file in this or parent directories.");
+                    return;
+                }
+            }
+            else if (!File.Exists(versionFile))
+            {
+                WriteError("Version file '{0}' does not exist", versionFile);
                 return;
             }
             
-            WriteMessage("Project root is '{0}'", Path.GetDirectoryName(rootFile));
-            
-            string projectFileName = Path.GetFileName(rootFile);
-            string projectName = projectFileName.Substring(0, projectFileName.IndexOf('.'));
-            string versionFile = Path.Combine(Path.GetDirectoryName(rootFile), projectName + ".version");
+            string versionFileName = Path.GetFileName(versionFile);
+            string projectName = versionFileName.Substring(0, versionFileName.IndexOf('.'));
             string versionConfigFile = versionFile + ".config";
 
             WriteMessage("Version file is '{0}'", versionFile);
             WriteMessage("Version config file is '{0}'", versionConfigFile);
+            WriteMessage("Project name is '{0}'", projectName);
 
             string[] fileList;
             
@@ -101,7 +110,7 @@ namespace Tools
                 revision++;
             }
 
-            WriteMessage("New version will be {0}.{1}.{2}.{3}", major, minor, build, revision);
+            WriteMessage("New version {0} be {1}.{2}.{3}.{4}", this.DoUpdate ? "will" : "would", major, minor, build, revision);
            
             if (this.DoUpdate)
                 WriteMessage("Updating version information:");
@@ -118,7 +127,7 @@ namespace Tools
 
             foreach (string file in fileList)
             {
-                string path = Path.Combine(Path.GetDirectoryName(rootFile), file);
+                string path = Path.Combine(Path.GetDirectoryName(versionFile), file);
                 string fileOnly = Path.GetFileName(file);
                 bool match = false;
 
@@ -241,34 +250,28 @@ namespace Tools
             doc.Save(versionFileName);
         }
 
-        private string GetProjectRootFile()
+        private string GetVersionFile()
         {
-            var fileSpecs = new string[] { "*.sln", "*.xcodeproj" };
-
+            var fileSpec = "*.version";
             string dir = Environment.CurrentDirectory;
 
-            foreach (var fileSpec in fileSpecs)
+            do 
             {
-                do 
+                string[] files = Directory.GetFiles(dir, fileSpec);
+            
+                if (files.Length > 0)
                 {
-                    string[] files = Directory.GetFiles(dir, fileSpec);
-                
-                    if (files.Length > 0)
-                    {
-                        return files[0];
-                    }
-                
-                    int i = dir.LastIndexOf(Path.DirectorySeparatorChar);
-                
-                    if (i <= 0)
-                        break;
-                
-                    dir = dir.Substring(0, i);
+                    return files[0];
                 }
-                while (true);
+            
+                int i = dir.LastIndexOf(Path.DirectorySeparatorChar);
+            
+                if (i <= 0)
+                    break;
+            
+                dir = dir.Substring(0, i);
             }
-
-            WriteError("Unable to find '{0}' to determine project name and root", String.Join(new string(Path.PathSeparator, 1), fileSpecs));
+            while (true);
 
             return null;
         }
@@ -295,12 +298,32 @@ namespace Tools
                     case 'u':
                         DoUpdate = true;
                         return;
+                    case 'f':
+                        CheckAndSetArgument(arg, ref VersionFile);
+                        return;
                     default:
                         throw new ApplicationException(string.Format("Unknown argument '{0}'", arg[1]));
                     }
                 }
             }
         }
+
+       private void CheckAndSetArgument(string arg, ref string val)
+       {
+           if (arg[2] != ':')
+           {
+               throw new ApplicationException(string.Format("Argument {0} is missing a colon", arg[1]));
+           }
+   
+           if (string.IsNullOrEmpty(val))
+           {
+               val = arg.Substring(3);
+           }
+           else
+           {
+               throw new ApplicationException(string.Format("Argument {0} has already been set", arg[1]));
+           }
+       }
 
         private void WriteError(string format, params object[] args)
         {
