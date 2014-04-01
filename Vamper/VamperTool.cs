@@ -17,19 +17,22 @@ namespace Tools
             public string name;
             public Regex[] fileSpecs;
             public Tuple<string, string>[] updates;
-            public string[] writes;
+            public string write;
         }
 
         public bool HasOutputErrors { get; set; }
-        public bool ShowUsage { get; set; }
-        public bool DoUpdate { get; set; }
-        public string VersionFile;
 
+        public bool ShowUsage { get; set; }
+
+        public bool DoUpdate { get; set; }
+
+        public string VersionFile;
         private int major;
         private int minor;
         private int build;
         private int revision;
         private int startYear;
+        private string[] fileList;
 
         public VamperTool()
         {
@@ -62,7 +65,7 @@ namespace Tools
             
             if (String.IsNullOrEmpty(versionFile))
             {
-                versionFile = GetVersionFile();
+                versionFile = FindVersionFile();
             
                 if (versionFile == null)
                 {
@@ -84,10 +87,10 @@ namespace Tools
             WriteMessage("Version config file is '{0}'", versionConfigFile);
             WriteMessage("Project name is '{0}'", projectName);
 
-            string[] fileList;
-            
             if (File.Exists(versionFile))
-                fileList = ReadVersionFile(versionFile);
+            {
+                ReadVersionFile(versionFile);
+            }
             else
             {
                 major = 1;
@@ -98,14 +101,14 @@ namespace Tools
                 fileList = new string[] { };
             }
             
-            int jBuild = JDate(startYear);
+            int jBuild = ProjectDate(startYear);
             
             if (build != jBuild)
             {
                 revision = 0;
                 build = jBuild;
             }
-            else 
+            else
             {
                 revision++;
             }
@@ -133,6 +136,7 @@ namespace Tools
 
                 foreach (var fileType in fileTypes)
                 {
+                    // Find files of this type
                     foreach (var fileSpec in fileType.fileSpecs)
                     {
                         if (fileSpec.IsMatch(fileOnly))
@@ -143,28 +147,42 @@ namespace Tools
                     }
 
                     if (!match)
+                        // We did not find one, ignore it
                         continue;
 
-                    if (fileType.updates.Length > 0 && !File.Exists(path))
+                    // Are we just writing a file or updating an existing one?
+                    if (String.IsNullOrEmpty(fileType.write))
                     {
-                        WriteWarning("File '{0}' does not exist to update", path);
-                    }
+                        if (!File.Exists(path))
+                        {
+                            WriteError("File '{0}' does note exist to update", path);
+                            return;
+                        }
+                        
+                        if (DoUpdate)
+                        {
+                            foreach (var update in fileType.updates)
+                            {
+                                string contents = File.ReadAllText(path);
+    
+                                contents = Regex.Replace(contents, update.Item1, update.Item2);
 
-                    if (this.DoUpdate)
+                                File.WriteAllText(path, contents);
+                            }
+                        }
+                    }
+                    else
                     {
-                        foreach (var update in fileType.updates)
+                        string dir = Path.GetDirectoryName(path);
+                        
+                        if (!Directory.Exists(dir))
                         {
-                            string contents = File.ReadAllText(path);
-    
-                            contents = Regex.Replace(contents, update.Item1, update.Item2);
-    
-                            File.WriteAllText(path, contents);
+                            WriteError("Directory '{0}' does not exist to write file '{1}'", dir, Path.GetFileName(path));
+                            return;
                         }
-    
-                        foreach (var write in fileType.writes)
-                        {
-                            File.WriteAllText(path, write);
-                        }
+                        
+                        if (DoUpdate)
+                            File.WriteAllText(path, fileType.write);
                     }
 
                     break;
@@ -214,7 +232,7 @@ namespace Tools
                 fileType.fileSpecs = fileTypeElement.Elements("FileSpec").Select<XElement, Regex>(x => WildcardToRegex((string)x)).ToArray();
                 fileType.updates = fileTypeElement.Elements("Update").Select<XElement, Tuple<string, string>>(
                     x => new Tuple<string, string>((string)x.Element("Search"), SubstituteVersions((string)x.Element("Replace")))).ToArray();
-                fileType.writes = fileTypeElement.Elements("Write").Select(x => SubstituteVersions((string)x)).ToArray();
+                fileType.write = SubstituteVersions((string)fileTypeElement.Element("Write"));
 
                 fileTypes.Add(fileType);
             }
@@ -222,10 +240,9 @@ namespace Tools
             return fileTypes;
         }
 
-        private string[] ReadVersionFile(string versionFileName)
+        private void ReadVersionFile(string versionFileName)
         {
             XDocument versionDoc = XDocument.Load(versionFileName);
-            var fileList = versionDoc.Descendants("File").Select(x => (string)x).ToArray();
 
             major = (int)(versionDoc.Descendants("Major").First());
             minor = (int)(versionDoc.Descendants("Minor").First());
@@ -233,7 +250,7 @@ namespace Tools
             revision = (int)(versionDoc.Descendants("Revision").First());
             startYear = (int)(versionDoc.Descendants("StartYear").First());
 
-            return fileList;
+            fileList = versionDoc.Descendants("File").Select(x => SubstituteVersions((string)x)).ToArray();
         }
 
         private void WriteVersionFile(string versionFileName, string[] fileList)
@@ -250,12 +267,12 @@ namespace Tools
             doc.Save(versionFileName);
         }
 
-        private string GetVersionFile()
+        private string FindVersionFile()
         {
             var fileSpec = "*.version";
             string dir = Environment.CurrentDirectory;
 
-            do 
+            do
             {
                 string[] files = Directory.GetFiles(dir, fileSpec);
             
@@ -275,8 +292,8 @@ namespace Tools
 
             return null;
         }
-        
-        static private int JDate(int startYear)
+
+        static private int ProjectDate(int startYear)
         {
             DateTime today = DateTime.Today;
             
@@ -308,22 +325,22 @@ namespace Tools
             }
         }
 
-       private void CheckAndSetArgument(string arg, ref string val)
-       {
-           if (arg[2] != ':')
-           {
-               throw new ApplicationException(string.Format("Argument {0} is missing a colon", arg[1]));
-           }
+        private void CheckAndSetArgument(string arg, ref string val)
+        {
+            if (arg[2] != ':')
+            {
+                throw new ApplicationException(string.Format("Argument {0} is missing a colon", arg[1]));
+            }
    
-           if (string.IsNullOrEmpty(val))
-           {
-               val = arg.Substring(3);
-           }
-           else
-           {
-               throw new ApplicationException(string.Format("Argument {0} has already been set", arg[1]));
-           }
-       }
+            if (string.IsNullOrEmpty(val))
+            {
+                val = arg.Substring(3);
+            }
+            else
+            {
+                throw new ApplicationException(string.Format("Argument {0} has already been set", arg[1]));
+            }
+        }
 
         private void WriteError(string format, params object[] args)
         {
@@ -331,14 +348,14 @@ namespace Tools
             Console.WriteLine(format, args);
             this.HasOutputErrors = true;
         }
-        
+
         private void WriteWarning(string format, params object[] args)
         {
             Console.Write("warning: ");
             Console.WriteLine(format, args);
             this.HasOutputErrors = true;
         }
-        
+
         private void WriteMessage(string format, params object[] args)
         {
             Console.WriteLine(format, args);
