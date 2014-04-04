@@ -1,7 +1,7 @@
 CONFIG?=Release
 PREFIX?=prefix
 PREFIX:=$(abspath $(PREFIX))
-VERSION=2.0.20331
+VERSION=2.0.20404
 PROJECT=CSharpTools
 SCRATCH=scratch
 tools=Doozer Ender Lindex Spacer Strapper Vamper
