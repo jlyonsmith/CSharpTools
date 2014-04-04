@@ -127,8 +127,9 @@ namespace Tools
             }
 
             List<FileType> fileTypes = ReadVersionConfigFile(versionConfigFile);
+            IEnumerable<string> expandedFileList = fileList.Select(x => SubstituteVersions(x));
 
-            foreach (string file in fileList)
+            foreach (string file in expandedFileList)
             {
                 string path = Path.Combine(Path.GetDirectoryName(versionFile), file);
                 string fileOnly = Path.GetFileName(file);
@@ -244,13 +245,13 @@ namespace Tools
         {
             XDocument versionDoc = XDocument.Load(versionFileName);
 
+            // TODO: If the field is empty, what to do...?
             major = (int)(versionDoc.Descendants("Major").First());
             minor = (int)(versionDoc.Descendants("Minor").First());
             build = (int)(versionDoc.Descendants("Build").First());
             revision = (int)(versionDoc.Descendants("Revision").First());
             startYear = (int)(versionDoc.Descendants("StartYear").First());
-
-            fileList = versionDoc.Descendants("File").Select(x => SubstituteVersions((string)x)).ToArray();
+            fileList = versionDoc.Descendants("File").Select(x => (string)x).ToArray();
         }
 
         private void WriteVersionFile(string versionFileName, string[] fileList)
