@@ -11,5 +11,5 @@ before_install:
  - sudo installer -pkg "MonoFramework-MDK-${MONO_VERSION}.macos10.xamarin.x86.pkg" -target /
 
 script:
- - xbuild /property:Debug CSharpTools.sln
- - xbuild /property:Release CSharpTools.sln
+ - xbuild /property:Configuration=Debug CSharpTools.sln
+ - xbuild /property:Configuration=Release CSharpTools.sln
