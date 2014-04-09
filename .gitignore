@@ -6,6 +6,7 @@
 *.orig
 *.userprefs
 *.tar.gz
+*.nupkg
 .DS_Store
 msbuild.log
 Hammer/Test/*.txt
