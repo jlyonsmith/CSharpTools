@@ -12,3 +12,5 @@ A collection of useful tools command line development tools written in C# and Mo
 __Strapper__ is useful in conjunction with my [ToolBelt](https://github.com/jlyonsmith/ToolBelt) project for generating strongly typed string resource wrappers.
 
 A [Python project](https://github.com/jlyonsmith/Tools) exists with many of the same tools, with their old names.
+
+[![Build Status](https://travis-ci.org/jlyonsmith/CSharpTools.svg?branch=master)](https://travis-ci.org/jlyonsmith/CSharpTools)
