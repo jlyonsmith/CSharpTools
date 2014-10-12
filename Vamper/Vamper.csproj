@@ -38,6 +38,9 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="ToolBelt">
+      <HintPath>..\packages\ToolBelt.2.0.11010.0\lib\net45\ToolBelt.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -50,5 +53,8 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Default.version.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
