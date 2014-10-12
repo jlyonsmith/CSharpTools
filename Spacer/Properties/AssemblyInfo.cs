@@ -20,4 +20,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: AssemblyVersion("2.1.0.0")]
-[assembly: AssemblyFileVersion("2.1.10824.0")]
+[assembly: AssemblyFileVersion("2.1.11012.0")]
