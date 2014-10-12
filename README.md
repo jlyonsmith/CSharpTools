@@ -1,6 +1,6 @@
-# Simple Development Tools
+# Development Tools for C#
 
-A collection of useful tools command line development tools written in C# and Mono.
+A collection of useful command line development tools for C# programmers written in [C#](http://en.wikipedia.org/wiki/C_Sharp_&lpar;programming_language&rpar;) and targeting the [Mono](http://www.mono-project.com/) platform and [Xamarin Studio](http://xamarin.com/studio).
 
 - __Strapper__ generates strongly type C# wrappers for string resources.
 - __Ender__ reports on and fixing line endings

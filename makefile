@@ -1,10 +1,10 @@
 CONFIG?=Release
 PREFIX?=prefix
 PREFIX:=$(abspath $(PREFIX))
-VERSION=2.0.20409
+VERSION=2.1.10824
 PROJECT=CSharpTools
 SCRATCH=scratch
-tools=Doozer Ender Lindex Spacer Strapper Vamper
+tools=Doozer Ender Lindex Spacer Strapper Vamper Cleaner
 otherfiles=makefile template.sh
 markdown=README LICENSE
 lc=$(shell echo $(1) | tr A-Z a-z)

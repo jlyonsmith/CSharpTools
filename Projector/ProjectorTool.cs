@@ -4,21 +4,23 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ToolBelt;
 
 namespace Tools
 {
     // TODO: Add ability to rename project files during copy
 
-    public class ProjectorTool
+    public class ProjectorTool : ToolBase
     {
-        public string SourceDir { get; set; }
-
-        public string DestinationDir { get; set; }
-
+        [CommandLineArgument("help", ShortName="?", Description="Shows this help")]
         public bool ShowUsage { get; set; }
-
-        public bool HasOutputErrors { get; set; }
+        [CommandLineArgument("sd", Description="Source project directory")]
+        public ParsedDirectoryPath SourceDir { get; set; }
+        [CommandLineArgument("dd", Description="Destination project directory")]
+        public ParsedDirectoryPath DestinationDir { get; set; }
+        [CommandLineArgument("sn", Description="Source project name")]
         public string SourceName  { get; set; }
+        [CommandLineArgument("dn", Description="Destination project name")]
         public string DestinationName { get; set; }
 
         private Dictionary<string, string> projGuidMap = new Dictionary<string, string>();
@@ -27,33 +29,13 @@ namespace Tools
         private List<Regex> excludeFiles = new List<Regex>();
         private List<string> slnFiles = new List<string>();
 
-        public ProjectorTool()
-        {
-        }
-
-        public void Execute()
+        #region ITool
+        public override void Execute()
         {
             if (ShowUsage)
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                string name = assembly.FullName.Substring(0, assembly.FullName.IndexOf(','));
-                object[] attributes = assembly.GetCustomAttributes(true);
-                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyFileVersionAttribute)).Version;
-                string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
-                string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
-                string description = ((AssemblyDescriptionAttribute)attributes.First(x => x is AssemblyDescriptionAttribute)).Description;
-
-                WriteMessage("{0}. Version {1}", title, version);
-                WriteMessage("{0}.\n", copyright);
-                WriteMessage("{0}\n", description);
-                WriteMessage("Usage: mono {0}.exe ...\n", name);
-                WriteMessage(@"Arguments:
-    <src-dir>              Source directory contain C#/Git project tree.
-    <dst-dir>              Destination directory for copy with new GUIDs
-    [-s:<from-name>]       Source project name
-    [-d:<to-name>]         Destination project name
-    [-h] or [-?]           Show help.
-");
+                WriteMessage(Parser.LogoBanner);
+                WriteMessage(Parser.Usage);
                 return;
             }
 
@@ -87,6 +69,18 @@ namespace Tools
                 return;
             }
 
+            if (String.IsNullOrEmpty(SourceName))
+            {
+                WriteError("A source name is required");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(DestinationName))
+            {
+                WriteError("A destination name is required");
+                return;
+            }
+
             excludeDirs.Add(WildcardToRegex("*/.git"));
 
             ExcludeGitignore();
@@ -96,6 +90,8 @@ namespace Tools
 
             ChangeSlnGuidsAndNames();
         }
+
+        #endregion 
 
         private static Regex WildcardToRegex(string pattern)
         {
@@ -127,6 +123,10 @@ namespace Tools
         private void ExcludeGitSubmodules()
         {
             var file = Path.Combine(SourceDir, ".gitmodules");
+
+            if (!File.Exists(file))
+                return;
+
             var contents = File.ReadAllText(file);
             MatchCollection matches = Regex.Matches(contents, @"(?<=path = ).*");
 
@@ -137,6 +137,10 @@ namespace Tools
         private void ExcludeGitignore()
         {
             var file = Path.Combine(SourceDir, ".gitignore");
+
+            if (!File.Exists(file))
+                return;
+
             var lines = File.ReadAllLines(file);
 
             foreach (var line in lines)
@@ -217,8 +221,11 @@ namespace Tools
 
         private void CopyDirectory(string sourcePath, string destPath)
         {
-            if (IsExcludedDir(sourcePath))
+            if (IsExcludedDir(destPath))
+            {
+                WriteMessage("Excluded dir {0}", destPath);
                 return;
+            }
 
             if (!Directory.Exists(destPath))
             {
@@ -230,7 +237,10 @@ namespace Tools
                 string dest = Path.Combine(destPath, Path.GetFileName(file));
 
                 if (IsExcludedFile(dest))
+                {
+                    WriteMessage("Excluded file {0}", sourcePath);
                     continue;
+                }
 
                 string ext = Path.GetExtension(file);
 
@@ -259,83 +269,6 @@ namespace Tools
 
                 CopyDirectory(folder, dest);
             }
-        }
-
-        public void ProcessCommandLine(string[] args)
-        {
-            string sourceName = null;
-            string destinationName = null; 
-
-            foreach (var arg in args)
-            {
-                if (arg.StartsWith("-"))
-                {
-                    switch (arg[1])
-                    {
-                    case 'h':
-                    case '?':
-                        ShowUsage = true;
-                        return;
-                    case 's':
-                        CheckAndSetArgument(arg, ref sourceName);
-                        break;
-                    case 'd':
-                        CheckAndSetArgument(arg, ref destinationName);
-                        break;
-                    default:
-                        throw new Exception(string.Format("Unknown argument '{0}'", arg[1]));
-                    }
-                }
-                else if (String.IsNullOrEmpty(SourceDir))
-                {
-                    SourceDir = Path.GetFullPath(arg);
-                }
-                else if (String.IsNullOrEmpty(DestinationDir))
-                {
-                    DestinationDir = Path.GetFullPath(arg);
-                }
-                else
-                    throw new Exception(string.Format("Unexpected argument '{0}'", arg));
-            }
-
-            this.SourceName = sourceName;
-            this.DestinationName = destinationName;
-        }
-        
-        private void CheckAndSetArgument(string arg, ref string val)
-        {
-            if (arg[2] != ':')
-            {
-                throw new ApplicationException(string.Format("Argument {0} is missing a colon", arg[1]));
-            }
-
-            if (string.IsNullOrEmpty(val))
-            {
-                val = arg.Substring(3);
-            }
-            else
-            {
-                throw new ApplicationException(string.Format("Argument {0} has already been set", arg[1]));
-            }
-        }
-
-        private void WriteMessage(string format, params object[] args)
-        {
-            Console.WriteLine(format, args);
-        }
-
-        private void WriteError(string format, params object[] args)
-        {
-            Console.Write("error: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteWarning(string format, params object[] args)
-        {
-            Console.Write("warning: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
         }
     }
 }

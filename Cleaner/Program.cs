@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using ToolBelt;
 
 namespace Tools
@@ -7,7 +7,7 @@ namespace Tools
     {
         public static int Main(string[] args)
         {
-            ProjectorTool tool = new ProjectorTool();
+            CleanerTool tool = new CleanerTool();
 
             try
             {

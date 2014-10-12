@@ -8,12 +8,13 @@
     <File>Projector/Properties/AssemblyInfo.cs</File>
     <File>Lindex/Properties/AssemblyInfo.cs</File>
     <File>Doozer/Properties/AssemblyInfo.cs</File>
+    <File>Cleaner/Properties/AssemblyInfo.cs</File>
     <File>CSharpTools.nuspec</File>
     <File>makefile</File>
   </Files>
   <Major>2</Major>
-  <Minor>0</Minor>
-  <Build>20409</Build>
-  <Revision>1</Revision>
-  <StartYear>2013</StartYear>
+  <Minor>1</Minor>
+  <Build>10824</Build>
+  <Revision>0</Revision>
+  <StartYear>2014</StartYear>
 </Version>
