@@ -5,40 +5,26 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using System.Text;
+using ToolBelt;
 
 namespace Tools
 {
-    public class LindexTool
+    [CommandLineTitle("Lindex C# Line Indexer")]
+    [CommandLineDescription("Creates an index of start offset of lines in a text file")]
+    [CommandLineCopyright("Copyright (c) John Lyon-Smith 2014")]
+    public class LindexTool : ToolBase
     {
-        public bool HasOutputErrors { get; set; }
-
-        public bool ShowUsage;
+        [CommandLineArgument("help", ShortName="?", Description="Shows this help")]
+        public bool ShowUsage { get; set; }
+        [DefaultCommandLineArgument(Description="Input file to index.", ValueHint="INPUTFILE")]
         public string InputFile { get; set; }
 
-        public LindexTool()
-        {
-        }
-
-        public void Execute()
+        public override void Execute()
         {
             if (ShowUsage)
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                string name = assembly.FullName.Substring(0, assembly.FullName.IndexOf(','));
-                object[] attributes = assembly.GetCustomAttributes(true);
-                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyFileVersionAttribute)).Version;
-                string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
-                string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
-                string description = ((AssemblyDescriptionAttribute)attributes.First(x => x is AssemblyDescriptionAttribute)).Description;
-
-                WriteMessage("{0}. Version {1}", title, version);
-                WriteMessage("{0}.\n", copyright);
-                WriteMessage("{0}\n", description);
-                WriteMessage("Usage: mono {0}.exe ...\n", name);
-                WriteMessage(@"Arguments:
-    [-h] or [-?]            Show help.
-");
-
+                WriteMessage(this.Parser.LogoBanner);
+                WriteMessage(this.Parser.Usage);
                 return;
             }
             
@@ -85,52 +71,6 @@ namespace Tools
                     }
                 }
             }
-        }
-
-        public void ProcessCommandLine(string[] args)
-        {
-            foreach (var arg in args)
-            {
-                if (arg.StartsWith("-"))
-                {
-                    switch (arg[1])
-                    {
-                    case 'h':
-                    case '?':
-                        ShowUsage = true;
-                        return;
-                    default:
-                        throw new ApplicationException(string.Format("Unknown argument '{0}'", arg[1]));
-                    }
-                }
-                else if (String.IsNullOrEmpty(InputFile))
-                {
-                    InputFile = arg;
-                }
-                else
-                {
-                    throw new ApplicationException("Only one file can be specified");
-                }
-            }
-        }
-
-        private void WriteError(string format, params object[] args)
-        {
-            Console.Write("error: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteWarning(string format, params object[] args)
-        {
-            Console.Write("warning: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteMessage(string format, params object[] args)
-        {
-            Console.WriteLine(format, args);
         }
     }
 }

@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 #endif
 
 [assembly: AssemblyTitle("Cleaner C# Project Mega Cleaner")]
-[assembly: AssemblyDescription("Deletes all bin/Xxx and obj/Xxx directories in a directory containing a .csproj")]
+[assembly: AssemblyDescription("Deletes all bin/Xxx and obj/Xxx directories in a tree of C# projects")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
 [assembly: AssemblyProduct("C# Tools")]
 [assembly: AssemblyCopyright("Copyright (c) John Lyon-Smith 2014")]

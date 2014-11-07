@@ -5,57 +5,50 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using System.Text;
+using ToolBelt;
 
 namespace Tools
 {
-    public class DoozerTool
+    [CommandLineTitle("Doozer C# Project TODO Scraper")]
+    [CommandLineDescription("Finds all the //TODO comments in a tree of C# projects")]
+    [CommandLineCopyright("Copyright (c) John Lyon-Smith 2014")]
+    public class DoozerTool : ToolBase
     {
-        public bool HasOutputErrors { get; set; }
-
-        public bool ShowUsage;
-
         private Regex todoRegex = new Regex(@"// *(TODO*.*$)", RegexOptions.Singleline);
 
-        public DoozerTool()
-        {
-        }
+        [CommandLineArgument("help", ShortName="?", Description="Shows this help")]
+        public bool ShowUsage { get; set; }
+        [DefaultCommandLineArgument(Description="Directory to scan. Default is the current directory.", ValueHint="ROOTDIR")]
+        public ParsedDirectoryPath RootDir { get; set; }
 
-        public void Execute()
+        public override void Execute()
         {
             if (ShowUsage)
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                string name = assembly.FullName.Substring(0, assembly.FullName.IndexOf(','));
-                object[] attributes = assembly.GetCustomAttributes(true);
-                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyFileVersionAttribute)).Version;
-                string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
-                string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
-                string description = ((AssemblyDescriptionAttribute)attributes.First(x => x is AssemblyDescriptionAttribute)).Description;
-
-                WriteMessage("{0}. Version {1}", title, version);
-                WriteMessage("{0}.\n", copyright);
-                WriteMessage("{0}\n", description);
-                WriteMessage("Usage: mono {0}.exe ...\n", name);
-                WriteMessage(@"Arguments:
-    [-h] or [-?]            Show help.
-");
+                WriteMessage(this.Parser.LogoBanner);
+                WriteMessage(this.Parser.Usage);
                 return;
             }
 
-            ProcessDirectory(Environment.CurrentDirectory);
+            if (RootDir == null)
+            {
+                RootDir = new ParsedDirectoryPath(Environment.CurrentDirectory);
+            }
+
+            ProcessDirectory(RootDir);
         }
 
-        private void ProcessDirectory(string dir)
+        private void ProcessDirectory(ParsedPath dir)
         {
-            string[] files = Directory.GetFiles(dir);
+            var files = DirectoryUtility.GetFiles(dir, SearchScope.DirectoryOnly);
 
             foreach (var file in files)
             {
-                if (Path.GetExtension(file) == ".cs")
+                if (file.Extension == ".cs")
                     ScanFile(file);
             }
 
-            string[] dirs = Directory.GetDirectories(dir);
+            var dirs = DirectoryUtility.GetDirectories(dir, SearchScope.DirectoryOnly);
 
             foreach (var subDir in dirs)
             {
@@ -82,48 +75,6 @@ namespace Tools
                     lineNum++;
                 }
             }
-        }
-
-        public void ProcessCommandLine(string[] args)
-        {
-            foreach (var arg in args)
-            {
-                if (arg.StartsWith("-"))
-                {
-                    switch (arg[1])
-                    {
-                    case 'h':
-                    case '?':
-                        ShowUsage = true;
-                        return;
-                    default:
-                        throw new ApplicationException(string.Format("Unknown argument '{0}'", arg[1]));
-                    }
-                }
-                else
-                {
-                    throw new ApplicationException("Only one file can be specified");
-                }
-            }
-        }
-
-        private void WriteError(string format, params object[] args)
-        {
-            Console.Write("error: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteWarning(string format, params object[] args)
-        {
-            Console.Write("warning: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteMessage(string format, params object[] args)
-        {
-            Console.WriteLine(format, args);
         }
     }
 }

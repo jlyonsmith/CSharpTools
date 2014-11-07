@@ -10,10 +10,14 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Resources;
 using System.Linq;
+using ToolBelt;
 
 namespace Tools
 {
-    public class StrapperTool
+    [CommandLineTitle("")]
+    [CommandLineDescription("")]
+    [CommandLineCopyright("Copyright (c) John Lyon-Smith 2014")]
+    public class StrapperTool : ToolBase
     {
         #region Classes
 
@@ -75,67 +79,53 @@ namespace Tools
         #endregion
 
         #region Fields
-
         private List<ResourceItem> resources = new List<ResourceItem>();
         private StreamWriter writer;
         private readonly char[] InvalidNameCharacters = new char[] { '.', '$', '*', '{', '}', '|', '<', '>' };
         private bool haveDrawingResources = false;
-        public string InputFileName;
-        public string ResourcesFileName;
-        public string CsFileName;
-        public string Namespace;
-        public string BaseName;
-        public string WrapperClass;
-        public string Modifier;
-        public bool ShowUsage;
-        public bool Incremental;
-
-        public bool HasOutputErrors { get; set; }
-
         #endregion
 
-        #region Constructors
+        [DefaultCommandLineArgument(ValueHint="INPUTFILE", Description="Input .resx or .strings file.")]
+        public string InputFileName { get; set; }
+        [CommandLineArgument("resources", ShortName="r", ValueHint="RESFILE", Description="Specify different name for .resources file.")]
+        public string ResourcesFileName { get; set; }
+        [CommandLineArgument("output", ShortName="o", ValueHint="CSFILE", Description="Specify different name for .cs file.")]
+        public string CsFileName { get; set; }
+        [CommandLineArgument("namespace", ShortName="n", ValueHint="NAMESPACE", Description="Namespace to use in generated C#.")]
+        public string Namespace { get; set; }
+        [CommandLineArgument("basename", ShortName="b", Description="The root name of the resource file without its extension " +
+            "but including any fully qualified namespace name. For " +
+            "example, the base name for MyNamespace.MyClass.en-US.resources " +
+            "would be MyNamespace.MyClass. See ResourceManager constructor " +
+            "documentation for details.  If not provided the typeof the " +
+            "generated class is used.")]
+        public string BaseName { get; set; }
+        [CommandLineArgument("wrapper", ShortName="w", Description="String wrapper class. 'Message' or 'String' are supported. See Message.cs in ToolBelt library for details. Required.")]
+        public string WrapperClass { get; set; }
+        [CommandLineArgument("access", ShortName="a", Description="Access modifier of the wrapper class. Must be internal or public. Default is public.",
+            Initializer=typeof(StrapperTool), MethodName="ParseModifier")]
+        public string AccessModifier { get; set; }
+        [CommandLineArgument("help", ShortName="?", Description="Shows this help")]
+        public bool ShowUsage { get; set; }
+        [CommandLineArgument("incremental", ShortName="i", Description="Only update output files if the input files have changed")]
+        public bool Incremental { get; set; }
 
-        public StrapperTool()
+        public static string ParseModifier(string arg)
         {
-        }
+            if (arg == "public" || arg == "internal")
+                return arg;
 
-        #endregion
+            throw new CommandLineArgumentException("Modifier must be public or internal");
+        }
 
         #region Methods
 
-        public void Execute()
+        public override void Execute()
         {
             if (ShowUsage)
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                string name = assembly.FullName.Substring(0, assembly.FullName.IndexOf(','));
-                object[] attributes = assembly.GetCustomAttributes(true);
-                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyFileVersionAttribute)).Version;
-                string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
-                string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
-                string description = ((AssemblyDescriptionAttribute)attributes.First(x => x is AssemblyDescriptionAttribute)).Description;
-
-                WriteMessage("{0}. Version {1}", title, version);
-                WriteMessage("{0}.\n", copyright);
-                WriteMessage("{0}\n", description);
-                WriteMessage("Usage: mono {0}.exe ...\n", name);
-                WriteMessage(@"Arguments:
-          <file>                   Input .resx or .strings file.
-          [-o:<output-cs>]         Specify different name for .cs file.
-          [-r:<output-resources>]  Specify different name for .resources file.
-          [-n:<namespace>]         Namespace to use in generated C#.
-          [-b:<basename>]          The root name of the resource file without its extension 
-                                   but including any fully qualified namespace name. For 
-                                   example, the base name for MyNamespace.MyClass.en-US.resources
-                                   would be MyNamespace.MyClass. See ResourceManager constructor 
-                                   documentation for details.  If not provided the typeof the 
-                                   generated class is used.
-          [-w:<wrapper-class>]     String wrapper class. See Message.cs for details.
-          [-a:<access>]            Access modifier for properties and methods.
-          [-i]                     Incremental build. Create outputs only if out-of-date.
-          [-h] or [-?]             Show help.
-");
+                WriteMessage(this.Parser.LogoBanner);
+                WriteMessage(this.Parser.Usage);
                 return;
             }
 
@@ -161,9 +151,9 @@ namespace Tools
                 ResourcesFileName = Path.ChangeExtension(InputFileName, ".resources");
             }
 
-            if (String.IsNullOrEmpty(Modifier))
+            if (String.IsNullOrEmpty(AccessModifier))
             {
-                Modifier = "public";
+                AccessModifier = "public";
             }
 
             DateTime resxLastWriteTime = File.GetLastWriteTime(InputFileName);
@@ -298,7 +288,7 @@ using System.Globalization;
     internal static readonly ResourceManager ResourceManager = new ResourceManager("
                 ,
                 Path.GetFileName(InputFileName), 
-                Modifier, 
+                AccessModifier, 
                 Path.GetFileNameWithoutExtension(CsFileName)));
 
             if (String.IsNullOrWhiteSpace(this.BaseName))
@@ -683,92 +673,6 @@ using System.Globalization;
                     resources.Add(new ResourceItem(name, value.ToString()));
                 }
             }
-        }
-
-        public void ProcessCommandLine(string[] args)
-        {
-            foreach (var arg in args)
-            {
-                if (arg.StartsWith("-"))
-                {
-                    switch (arg[1])
-                    {
-                    case 'h':
-                    case '?':
-                        ShowUsage = true;
-                        return;
-                    case 'i':
-                        Incremental = true;
-                        continue;
-                    case 'b':
-                        CheckAndSetArgument(arg, ref BaseName);
-                        break;
-                    case 'o':
-                        CheckAndSetArgument(arg, ref CsFileName); 
-                        break;
-                    case 'r':
-                        CheckAndSetArgument(arg, ref ResourcesFileName); 
-                        break;
-                    case 'n':
-                        CheckAndSetArgument(arg, ref Namespace); 
-                        break;
-                    case 'w':
-                        CheckAndSetArgument(arg, ref WrapperClass); 
-                        break;
-                    case 'm':
-                        CheckAndSetArgument(arg, ref Modifier); 
-                        if (Modifier != "public" && Modifier != "internal")
-                            throw new ApplicationException(string.Format("Wrapper class must be public or internal"));
-                        break;
-                    default:
-                        throw new ApplicationException(string.Format("Unknown argument '{0}'", arg[1]));
-                    }
-                }
-                else if (String.IsNullOrEmpty(InputFileName))
-                {
-                    InputFileName = arg;
-                }
-                else
-                {
-                    throw new ApplicationException("Only one .resx file can be specified");
-                }
-            }
-        }
-
-        private void CheckAndSetArgument(string arg, ref string val)
-        {
-            if (arg[2] != ':')
-            {
-                throw new ApplicationException(string.Format("Argument {0} is missing a colon", arg[1]));
-            }
-   
-            if (string.IsNullOrEmpty(val))
-            {
-                val = arg.Substring(3);
-            }
-            else
-            {
-                throw new ApplicationException(string.Format("Argument {0} has already been set", arg[1]));
-            }
-        }
-
-        private void WriteError(string format, params object[] args)
-        {
-            Console.Write("error: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteWarning(string format, params object[] args)
-        {
-            Console.Write("warning: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteMessage(string format, params object[] args)
-        {
-            Console.WriteLine(format, args);
         }
 
         #endregion

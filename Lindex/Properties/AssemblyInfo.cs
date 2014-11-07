@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Creates an index of start offset of lines in a text file")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
 [assembly: AssemblyProduct("C# Tools")]
-[assembly: AssemblyCopyright("Copyright (c) John Lyon-Smith 2013")]
+[assembly: AssemblyCopyright("Copyright (c) John Lyon-Smith 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]

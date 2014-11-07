@@ -4,6 +4,9 @@ using System.IO;
 
 namespace Tools
 {
+    [CommandLineTitle("Cleaner C# Project Mega Cleaner")]
+    [CommandLineDescription("Deletes all bin/Xxx and obj/Xxx directories in a tree of C# projects")]
+    [CommandLineCopyright("Copyright (c) John Lyon-Smith 2014")]
     public class CleanerTool : ToolBase
     {
         [CommandLineArgument("help", ShortName="?", Description="Shows this help")]

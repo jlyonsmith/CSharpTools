@@ -8,10 +8,14 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Resources;
 using System.Linq;
+using ToolBelt;
 
 namespace Tools
 {
-    public class EnderTool
+    [CommandLineTitle("Ender Line Ending Fixer")]
+    [CommandLineDescription("Reports on and optionally fixes line endings in text files")]
+    [CommandLineCopyright("Copyright (c) John Lyon-Smith 2014")]
+    public class EnderTool : ToolBase
     {
         public enum LineEnding
         {
@@ -21,44 +25,30 @@ namespace Tools
             Lf,
             CrLf
         }
-        #region Fields
-        public string InputFileName;
-        public string OutputFileName;
-        public LineEnding? ConvertMode;
-        public bool ShowUsage;
 
-        public bool HasOutputErrors { get; set; }
-        #endregion
-        
-        #region Constructors
-        public EnderTool()
+        [DefaultCommandLineArgument(Description="The input file to scan", ValueHint="INPUTFILE")]
+        public string InputFileName { get; set; }
+        [CommandLineArgument("output", ShortName="o", Description="The output file.  Default is the same as the input file.", ValueHint="OUTPUTFILE")]
+        public string OutputFileName { get; set; }
+        [CommandLineArgument("mode", ShortName="m", Description="The convert mode, one of auto, cr, lf, crlf. " + 
+            "auto will use the most commonly occurring ending. Updates will only be done when this argument is given.", 
+            Initializer=typeof(EnderTool), MethodName="ParseMode")]
+        public LineEnding? ConvertMode { get; set; }
+        [CommandLineArgument("help", ShortName="?", Description="Shows this help.")]
+        public bool ShowUsage { get; set; }
+
+        public static LineEnding? ParseMode(string arg)
         {
+            return (LineEnding?)Enum.Parse(typeof(LineEnding), arg, true);
         }
-        #endregion      
-        
+
         #region Methods
-        public void Execute()
+        public override void Execute()
         {
             if (ShowUsage)
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                string name = assembly.FullName.Substring(0, assembly.FullName.IndexOf(','));
-                object[] attributes = assembly.GetCustomAttributes(true);
-                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyFileVersionAttribute)).Version;
-                string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
-                string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
-                string description = ((AssemblyDescriptionAttribute)attributes.First(x => x is AssemblyDescriptionAttribute)).Description;
-
-                WriteMessage("{0}. Version {1}", title, version);
-                WriteMessage("{0}.\n", copyright);
-                WriteMessage("{0}\n", description);
-                WriteMessage("Usage: mono {0}.exe ...\n", name);
-                WriteMessage(@"Arguments:
-    <text-file>              Input text file.
-    [-o:<output-file>]       Specify different name for output file.
-    [-m:<line-endings>]      Fix line endings to be cr, lf, crlf or auto.
-    [-h] or [-?]             Show help.
-");
+                WriteMessage(this.Parser.LogoBanner);
+                WriteMessage(this.Parser.Usage);
                 return;
             }
 
@@ -196,77 +186,6 @@ namespace Tools
             }
 
             WriteMessage(sb.ToString());
-        }
-
-        public void ProcessCommandLine(string[] args)
-        {
-            foreach (var arg in args)
-            {
-                if (arg.StartsWith("-"))
-                {
-                    switch (arg[1])
-                    {
-                    case 'h':
-                    case '?':
-                        ShowUsage = true;
-                        return;
-                    case 'o':
-                        CheckAndSetArgument(arg, ref OutputFileName); 
-                        continue;
-                    case 'm':
-                        string lineEndings = (ConvertMode.HasValue ? ConvertMode.Value.ToString() : null);
-                        CheckAndSetArgument(arg, ref lineEndings); 
-                        ConvertMode = (LineEnding)Enum.Parse(typeof(LineEnding), lineEndings, true);
-                        break;
-                    default:
-                        throw new ApplicationException(string.Format("Unknown argument '{0}'", arg[1]));
-                    }
-                }
-                else if (String.IsNullOrEmpty(InputFileName))
-                {
-                    InputFileName = arg;
-                }
-                else
-                {
-                    throw new ApplicationException("Only one file can be specified");
-                }
-            }
-        }
-
-        private void CheckAndSetArgument(string arg, ref string val)
-        {
-            if (arg[2] != ':')
-            {
-                throw new ApplicationException(string.Format("Argument {0} is missing a colon", arg[1]));
-            }
-            
-            if (string.IsNullOrEmpty(val))
-            {
-                val = arg.Substring(3);
-            }
-            else
-            {
-                throw new ApplicationException(string.Format("Argument {0} has already been set", arg[1]));
-            }
-        }
-
-        private void WriteError(string format, params object[] args)
-        {
-            Console.Write("error: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteWarning(string format, params object[] args)
-        {
-            Console.Write("warning: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteMessage(string format, params object[] args)
-        {
-            Console.WriteLine(format, args);
         }
         #endregion
     }

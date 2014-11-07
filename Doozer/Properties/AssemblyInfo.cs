@@ -9,10 +9,10 @@ using System.Runtime.InteropServices;
 #endif
 
 [assembly: AssemblyTitle("Doozer C# Project TODO Scraper")]
-[assembly: AssemblyDescription("Finds all the TODO comments in a list of projects")]
+[assembly: AssemblyDescription("Finds all the //TODO comments in a tree of C# projects")]
 [assembly: AssemblyCompany("John Lyon-Smith")]
 [assembly: AssemblyProduct("C# Tools")]
-[assembly: AssemblyCopyright("Copyright (c) John Lyon-Smith 2013")]
+[assembly: AssemblyCopyright("Copyright (c) John Lyon-Smith 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]

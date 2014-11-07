@@ -1,4 +1,5 @@
 using System;
+using ToolBelt;
 
 namespace Tools
 {
@@ -15,9 +16,13 @@ namespace Tools
                 tool.Execute();
                 return (tool.HasOutputErrors ? 1 : 0);
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                Console.WriteLine("error: {0}", exception);
+                while (e != null)
+                {
+                    ConsoleUtility.WriteMessage(MessageType.Error, e.Message);  
+                    e = e.InnerException;
+                }
                 return 1;
             }
         }

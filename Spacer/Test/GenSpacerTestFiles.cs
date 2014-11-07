@@ -6,7 +6,7 @@ public class Program
     public static void Main(string[] args)
     {
         File.WriteAllText(
-            "test.txt", 
+            "Test.cs", 
             "    a\n" +
             "\n" + 
             "\tb\n" + 

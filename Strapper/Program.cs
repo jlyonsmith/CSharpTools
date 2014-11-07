@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ToolBelt;
 
 namespace Tools
 {
@@ -10,16 +11,20 @@ namespace Tools
         {
             StrapperTool tool = new StrapperTool();
 
-           try
+            try
             {
                 tool.ProcessCommandLine(args);
 
                tool.Execute();
                 return (tool.HasOutputErrors ? 1 : 0);
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                Console.WriteLine("error: {0}", exception.Message);
+                while (e != null)
+                {
+                    ConsoleUtility.WriteMessage(MessageType.Error, e.Message);  
+                    e = e.InnerException;
+                }
                 return 1;
             }
         }

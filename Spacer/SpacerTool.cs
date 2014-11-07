@@ -5,10 +5,17 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using System.Text;
+using ToolBelt;
 
 namespace Tools
 {
-    public class SpacerTool
+    [CommandLineTitle("Text File Space/Tab Line Fixer Tool")]
+    [CommandLineDescription("Text file tab/space reporter and fixer. " +
+        "For C# source files, the tool reports on beginning-of-line tabs/spaces. " + 
+        "All tabs not at the beginning of a line are replaced with spaces. " + 
+        "Spaces/tabs inside C# multi-line strings are ignored.")]
+    [CommandLineCopyright("Copyright (c) John Lyon-Smith 2014")]
+    public class SpacerTool : ToolBase
     {
         public enum Whitespace
         {
@@ -17,41 +24,29 @@ namespace Tools
             Spaces,
         }
 
-        public bool HasOutputErrors { get; set; }
-        public bool ShowUsage;
-        public Whitespace? ConvertMode;
-        public string InputFileName;
-        public string OutputFileName;
-        public int TabSize = 4;
+        [CommandLineArgument("help", ShortName="?", Description="Shows this help")]
+        public bool ShowUsage { get; set; }
+        [CommandLineArgument("mode", ShortName="m", Description="The convert mode. One of mixed, tabs or spaces.  Default is to just display the files current state.",
+            Initializer=typeof(SpacerTool), MethodName="ParseWhitespace")]
+        public Whitespace? ConvertMode { get; set; }
+        [DefaultCommandLineArgument(Description="The input file to analyze and convert", ValueHint="INPUTFILE")]
+        public string InputFileName { get; set; }
+        [CommandLineArgument("output", ShortName="o", Description="An optional output file name.  Default is to use the input file.", ValueHint="OUTPUTFILE")]
+        public string OutputFileName { get; set; }
+        [CommandLineArgument("tabsize", ShortName="t", Description="The tabsize to assume. Default is 4 spaces.", ValueHint="TABSIZE")]
+        public int? TabSize { get; set; }
 
-        public SpacerTool()
+        public static Whitespace? ParseMode(string arg)
         {
+            return (Whitespace?)Enum.Parse(typeof(Whitespace), arg, true);
         }
 
-        public void Execute()
+        public override void Execute()
         {
             if (ShowUsage) 
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                string name = assembly.FullName.Substring(0, assembly.FullName.IndexOf(','));
-                object[] attributes = assembly.GetCustomAttributes(true);
-                string version = ((AssemblyFileVersionAttribute)attributes.First(x => x is AssemblyFileVersionAttribute)).Version;
-                string copyright = ((AssemblyCopyrightAttribute)attributes.First(x => x is AssemblyCopyrightAttribute)).Copyright;
-                string title = ((AssemblyTitleAttribute)attributes.First(x => x is AssemblyTitleAttribute)).Title;
-                string description = ((AssemblyDescriptionAttribute)attributes.First(x => x is AssemblyDescriptionAttribute)).Description;
-
-                WriteMessage("{0}. Version {1}", title, version);
-                WriteMessage("{0}.\n", copyright);
-                WriteMessage("{0}\n", description);
-                WriteMessage("Usage: mono {0}.exe ...\n", name);
-                WriteMessage(@"Arguments:
-    [-o:OUTPUTFILE]         Specify different name for output file.
-    [-m:MODE]               The conversion mode if conversion is required. 
-                            't' to convert to tabs, 's' to convert to spaces,
-                            Default is to report only.
-    [-s:TABSTOP]            The distance between each tabstop (default is 4)
-    [-h] or [-?]            Show help.
-");
+                WriteMessage(this.Parser.LogoBanner);
+                WriteMessage(this.Parser.Usage);
                 return;
             }
             
@@ -78,6 +73,11 @@ namespace Tools
                     WriteError("Must specify conversion mode with output file");
                     return;
                 }
+            }
+
+            if (!TabSize.HasValue)
+            {
+                TabSize = 4;
             }
 
             List<string> lines = ReadFileLines();
@@ -254,7 +254,7 @@ namespace Tools
                         if (c == '\t')
                         {
                             // Add spaces to next tabstop
-                            int numSpaces = this.TabSize - (sb.Length % this.TabSize);
+                            int numSpaces = this.TabSize.Value - (sb.Length % this.TabSize.Value);
 
                             sb.Append(' ', numSpaces);
                             continue;
@@ -297,8 +297,8 @@ namespace Tools
 
                     if (beginningOfLine && c != ' ')
                     {
-                        sb.Append(new string('\t', numBolSpaces / this.TabSize));
-                        sb.Append(new string(' ', numBolSpaces % this.TabSize));
+                        sb.Append(new string('\t', numBolSpaces / this.TabSize.Value));
+                        sb.Append(new string(' ', numBolSpaces % this.TabSize.Value));
                         beginningOfLine = false;
                     }
 
@@ -335,81 +335,6 @@ namespace Tools
                 lines[i] = sb.ToString();
                 sb.Clear();
             }
-        }
-
-        public void ProcessCommandLine (string[] args)
-        {
-            foreach (var arg in args) {
-                if (arg.StartsWith ("-")) {
-                    switch (arg [1]) {
-                    case 'h':
-                    case '?':
-                        ShowUsage = true;
-                        return;
-                    case 'o':
-                        CheckAndSetArgument(arg, ref OutputFileName); 
-                        continue;
-                    case 'm':
-                        string lineStarts = null;
-                        if (ConvertMode.HasValue)
-                            lineStarts = (ConvertMode.Value == Whitespace.Spaces ? "s" : "t");
-                        CheckAndSetArgument(arg, ref lineStarts); 
-                        ConvertMode = (lineStarts == "s" ? Whitespace.Spaces : Whitespace.Tabs);
-                        break;
-                    case 's':
-                        string tabSize = this.TabSize.ToString();
-                        CheckAndSetArgument(arg, ref tabSize);
-                        this.TabSize = int.Parse(tabSize);
-                        break;
-                    default:
-                        throw new ApplicationException(string.Format ("Unknown argument '{0}'", arg [1]));
-                    }
-                }
-                else if (String.IsNullOrEmpty(InputFileName))
-                {
-                    InputFileName = arg;
-                }
-                else
-                {
-                    throw new ApplicationException("Only one file can be specified");
-                }
-            }
-        }
-        
-        private void CheckAndSetArgument(string arg, ref string val)
-        {
-            if (arg[2] != ':')
-            {
-                throw new ApplicationException(string.Format("Argument {0} is missing a colon", arg[1]));
-            }
-
-            if (string.IsNullOrEmpty(val))
-            {
-                val = arg.Substring(3);
-            }
-            else
-            {
-                throw new ApplicationException(string.Format("Argument {0} has already been set", arg[1]));
-            }
-        }
-
-        private void WriteError (string format, params object[] args)
-        {
-            Console.Write("error: ");
-            Console.WriteLine (format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteWarning (string format, params object[] args)
-        {
-            Console.Write("warning: ");
-            Console.WriteLine(format, args);
-            this.HasOutputErrors = true;
-        }
-
-        private void WriteMessage(string format, params object[] args)
-        {
-            Console.WriteLine(format, args);
         }
     }
 }
