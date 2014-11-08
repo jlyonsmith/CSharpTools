@@ -1,3 +1,4 @@
+#!/bin/bash
 # Output a list of all the CSharpTools
 echo "cleaner   - Cleans C# project directories"
 echo "doozer    - Displays all TODO's in all C# files"

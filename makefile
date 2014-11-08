@@ -63,7 +63,7 @@ $(zipfile): $(foreach X,$(tools),$(SCRATCH)/$(X)/$(X).exe) \
 $(foreach X,$(tools),$(eval $(call copyrule,$(SCRATCH)/$(X)/$(X).exe,$(X)/bin/$(CONFIG)/$(X).exe)))
 $(foreach X,$(tools),$(eval $(call copyrule,$(SCRATCH)/$(X)/ToolBelt.dll,$(X)/bin/$(CONFIG)/ToolBelt.dll)))
 $(foreach X,$(otherfiles),$(eval $(call copyrule,$(SCRATCH)/$(X),$(X))))
-$(foreach X,$(markdown),$(eval $(call copyrule,$(SCRATCH)/$(X),$(X).md)))
+$(foreach X,$(markdown),$(eval $(call copyrule,$(SCRATCH)/$(X),$(X))))
 
 # NOTE: Test this by going to scratch dir and running there!
 
@@ -81,7 +81,7 @@ $(PREFIX)/bin $(PREFIX)/lib:
 
 $(foreach X,$(tools),$(eval $(call mkscriptrule,$(X))))
 
-$(PREFIX)/bin/csharptools: $(PREFIX)/csharptools 
+$(PREFIX)/bin/csharptools: csharptools 
 	cp csharptools $@
 	chmod u+x $@
 
