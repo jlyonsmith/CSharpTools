@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Linq;
 using System.Text;
 using ToolBelt;
+using System.Diagnostics;
 
 namespace Tools
 {
@@ -13,7 +14,10 @@ namespace Tools
     [CommandLineDescription("Text file tab/space reporter and fixer. " +
         "For C# source files, the tool reports on beginning-of-line tabs/spaces. " + 
         "All tabs not at the beginning of a line are replaced with spaces. " + 
-        "Spaces/tabs inside C# multi-line strings are ignored.")]
+        "Spaces/tabs inside C# multi-line strings are ignored.  Note that conversion " +
+        "to tabs may still leave the file as mixed as some lines may have spaces that are " +
+        "not a whole number multiple of the tabstop size.  In that case use the -round " +
+        "option to remove smooth out the spurious spaces.")]
     [CommandLineCopyright("Copyright (c) John Lyon-Smith 2014")]
     public class SpacerTool : ToolBase
     {
@@ -46,6 +50,8 @@ namespace Tools
         public ParsedFilePath OutputFileName { get; set; }
         [CommandLineArgument("tabsize", ShortName="t", Description="The tabsize to assume. Default is 4 spaces.", ValueHint="TABSIZE")]
         public int? TabSize { get; set; }
+        [CommandLineArgument("round", ShortName="r", Description="When tabifying, round BOL spaces down to an exact number of tabs.")]
+        public bool RoundToNearestTab { get; set; }
 
         public static Whitespace? ParseConvertMode(string arg)
         {
@@ -122,10 +128,10 @@ namespace Tools
             }
 
             StringBuilder sb = new StringBuilder();
-            Whitespace ws = (beforeTabs > 0) ? (beforeSpaces > 0 ? Whitespace.Mixed : Whitespace.Tabs) : Whitespace.Spaces;
+            Whitespace ws = GetWhitespaceType(beforeTabs, beforeSpaces);
 
             sb.AppendFormat("\"{0}\", {1}, {2}", 
-                this.InputFileName, fileType == FileType.CSharp ? "c#" : "other", Enum.GetName(typeof(Whitespace), ws).ToLower());
+                this.InputFileName, fileType == FileType.CSharp ? "c#" : "other", GetWhitespaceName(ws));
 
             if (this.ConvertMode.HasValue)
             {
@@ -136,6 +142,8 @@ namespace Tools
                 else
                     CountBolSpacesAndTabs(lines, out afterTabs, out afterSpaces);
 
+                ws = GetWhitespaceType(afterTabs, afterSpaces);
+
                 using (StreamWriter writer = new StreamWriter(this.OutputFileName))
                 {
                     foreach (var line in lines)
@@ -144,10 +152,20 @@ namespace Tools
                     }
                 }
 
-                sb.AppendFormat(" -> \"{0}\", {1}", this.OutputFileName, afterTabs > 0 ? "tabs" : "spaces");
+                sb.AppendFormat(" -> \"{0}\", {1}", this.OutputFileName, GetWhitespaceName(ws));
             }
 
             WriteMessage(sb.ToString());
+        }
+
+        Whitespace GetWhitespaceType(int tabs, int spaces)
+        {
+            return (tabs > 0) ? (spaces > 0 ? Whitespace.Mixed : Whitespace.Tabs) : Whitespace.Spaces;
+        }
+
+        object GetWhitespaceName(Whitespace ws)
+        {
+            return Enum.GetName(typeof(Whitespace), ws).ToLower();
         }
 
         public List<string> ReadFileLines()
@@ -196,37 +214,28 @@ namespace Tools
         {
             numBolSpaces = 0;
             numBolTabs = 0;
-            bool inStringConst = false;
+            bool inMultiLineString = false;
 
             foreach (string line in lines)
             {
-                bool bol = true;
-
                 for (int i = 0; i < line.Length; i++)
                 {
                     char c = line[i];
                     char c1 = i < line.Length - 1 ? line[i + 1] : '\0';
 
-                    if (inStringConst)
+                    if (inMultiLineString && c == '"' && c1 != '"')
+                        inMultiLineString = false;
+                    else if (c == ' ')
+                        numBolSpaces++;
+                    else if (c == '\t')
+                        numBolTabs++;
+                    else if (c == '@' && c1 == '"')
                     {
-                        if (c == '"' && c1 != '"')
-                            inStringConst = false;
+                        inMultiLineString = true;
+                        i++;
                     }
                     else
-                    {
-                        if (c == '@' && c1 == '"')
-                            inStringConst = true;
-                    }
-
-                    if (bol && !inStringConst)
-                    {
-                        if (c == ' ')
-                            numBolSpaces++;
-                        else if (c == '\t')
-                            numBolTabs++;
-                        else
-                            bol = false;
-                    }
+                        break;
                 }
             }
         }
@@ -249,45 +258,39 @@ namespace Tools
                     char c = line[j];
                     char c1 = j < line.Length - 1 ? line[j + 1] : '\0';
 
-                    if (inString)
+                    Debug.Assert(!(inString && inMultiLineString));
+
+                    if (!inMultiLineString && c == '\t')
                     {
-                        if (c == '"' && c_1 != '\\')
-                            inString = false;
+                        // Add spaces to next tabstop
+                        int numSpaces = this.TabSize.Value - (sb.Length % this.TabSize.Value);
+
+                        sb.Append(' ', numSpaces);
+                    }
+                    else if (!inMultiLineString && !inString && c == '"')
+                    {
+                        inString = true;
+                        sb.Append(c);
+                    }
+                    else if (!inMultiLineString && !inString && c == '@' && c1 == '"')
+                    {
+                        inMultiLineString = true;
+                        sb.Append(c);
+                        j++;
+                        sb.Append(c1);
+                    }
+                    else if (inString && c == '"' && c_1 != '\\')
+                    {
+                        inString = false;
+                        sb.Append(c);
+                    }
+                    else if (inMultiLineString && c == '"' && c1 != '"')
+                    {
+                        inMultiLineString = false;
+                        sb.Append(c);
                     }
                     else
-                    {
-                        if (c == '"')
-                            inString = true;
-                    }
-
-                    if (inMultiLineString)
-                    {
-                        if (c == '"' && c1 != '"')
-                        {
-                            inMultiLineString = false;
-                        }
-                    }
-                    else
-                    {
-                        if (c == '\t')
-                        {
-                            // Add spaces to next tabstop
-                            int numSpaces = this.TabSize.Value - (sb.Length % this.TabSize.Value);
-
-                            sb.Append(' ', numSpaces);
-                            continue;
-                        }
-                        else if (c == '@' && c1 == '"' && !inString)
-                        {
-                            sb.Append(c);
-                            sb.Append(c1);
-                            j++;
-                            inMultiLineString = true;
-                            continue;
-                        }
-                    }
-
-                    sb.Append(c);
+                        sb.Append(c);
                 }
 
                 lines[i] = sb.ToString();
@@ -297,57 +300,65 @@ namespace Tools
 
         public void CSharpTabify(List<string> lines)
         {
-            // Insert tabs where there are only spaces between two tab stops, but only at the beginning of lines
-            // and not inside @"..." strings
+            // Insert tabs for spaces, but only at the beginning of lines and not inside @"..." or "..." strings
 
             StringBuilder sb = new StringBuilder();
-            bool inStringConst = false;
+            bool inMultiLineString = false;
 
             for (int i = 0; i < lines.Count; i++)
             {
                 string line = lines[i];
-                bool beginningOfLine = true;
+                bool inString = false;
+                bool bol = true;
                 int numBolSpaces = 0;
 
                 for (int j = 0; j < line.Length; j++)
                 {
+                    char c_1 = j > 0 ? line[j - 1] : '\0';
                     char c = line[j];
-
-                    if (beginningOfLine && c != ' ')
-                    {
-                        sb.Append(new string('\t', numBolSpaces / this.TabSize.Value));
-                        sb.Append(new string(' ', numBolSpaces % this.TabSize.Value));
-                        beginningOfLine = false;
-                    }
-
                     char c1 = j < line.Length - 1 ? line[j + 1] : '\0';
 
-                    if (inStringConst)
+                    if (!inString && !inMultiLineString && bol && c == ' ')
                     {
-                        if (c == '"' && c1 != '"')
-                        {
-                            inStringConst = false;
-                        }
+                        // Just count the spaces
+                        numBolSpaces++;
+                    }
+                    else if (!inString && !inMultiLineString && bol && c != ' ')
+                    {
+                        bol = false;
+
+                        sb.Append(new string('\t', numBolSpaces / this.TabSize.Value));
+
+                        if (!RoundToNearestTab)
+                            sb.Append(new string(' ', numBolSpaces % this.TabSize.Value));
+
+                        // Process this character again as not BOL
+                        j--;
+                    } 
+                    else if (!inMultiLineString && !inString && c == '"')
+                    {
+                        inString = true;
+                        sb.Append(c);
+                    }
+                    else if (!inMultiLineString && !inString && c == '@' && c1 == '"')
+                    {
+                        inMultiLineString = true;
+                        sb.Append(c);
+                        j++;
+                        sb.Append(c1);
+                    }
+                    else if (inString && c == '"' && c_1 != '\\')
+                    {
+                        inString = false;
+                        sb.Append(c);
+                    }
+                    else if (inMultiLineString && c == '"' && c1 != '"')
+                    {
+                        inMultiLineString = false;
+                        sb.Append(c);
                     }
                     else
-                    {
-                        if (beginningOfLine && c == ' ')
-                        {
-                            // Just count the spaces
-                            numBolSpaces++;
-                            continue;
-                        }
-                        else if (c == '@' && c1 == '"')
-                        {
-                            sb.Append(c);
-                            sb.Append(c1);
-                            j++;
-                            inStringConst = true;
-                            continue;
-                        }
-                    }
-
-                    sb.Append(c);
+                        sb.Append(c);
                 }
 
                 lines[i] = sb.ToString();
@@ -362,21 +373,16 @@ namespace Tools
 
             foreach (string line in lines)
             {
-                bool bol = true;
-
                 for (int i = 0; i < line.Length; i++)
                 {
                     char c = line[i];
 
-                    if (bol)
-                    {
-                        if (c == ' ')
-                            numBolSpaces++;
-                        else if (c == '\t')
-                            numBolTabs++;
-                        else
-                            bol = false;
-                    }
+                    if (c == ' ')
+                        numBolSpaces++;
+                    else if (c == '\t')
+                        numBolTabs++;
+                    else
+                        break;
                 }
             }
         }
@@ -400,10 +406,9 @@ namespace Tools
                         int numSpaces = this.TabSize.Value - (sb.Length % this.TabSize.Value);
 
                         sb.Append(' ', numSpaces);
-                        continue;
                     }
-
-                    sb.Append(c);
+                    else
+                        sb.Append(c);
                 }
 
                 lines[i] = sb.ToString();
@@ -420,28 +425,31 @@ namespace Tools
             for (int i = 0; i < lines.Count; i++)
             {
                 string line = lines[i];
-                bool beginningOfLine = true;
+                bool bol = true;
                 int numBolSpaces = 0;
 
                 for (int j = 0; j < line.Length; j++)
                 {
                     char c = line[j];
 
-                    if (beginningOfLine && c != ' ')
-                    {
-                        sb.Append(new string('\t', numBolSpaces / this.TabSize.Value));
-                        sb.Append(new string(' ', numBolSpaces % this.TabSize.Value));
-                        beginningOfLine = false;
-                    }
-
-                    if (beginningOfLine && c == ' ')
+                    if (bol && c == ' ')
                     {
                         // Just count the spaces
                         numBolSpaces++;
-                        continue;
                     }
+                    else if (bol && c != ' ')
+                    {
+                        bol = false;
 
-                    sb.Append(c);
+                        sb.Append(new string('\t', numBolSpaces / this.TabSize.Value));
+
+                        if (!RoundToNearestTab)
+                            sb.Append(new string(' ', numBolSpaces % this.TabSize.Value));
+
+                        sb.Append(c);
+                    }
+                    else 
+                        sb.Append(c);
                 }
 
                 lines[i] = sb.ToString();

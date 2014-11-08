@@ -20,7 +20,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
-    <Commandlineparameters>-?</Commandlineparameters>
+    <Commandlineparameters>Test/Test.cs -o:Test/TestTabs.cs -m:t</Commandlineparameters>
     <CustomCommands>
       <CustomCommands>
         <Command type="BeforeExecute" />

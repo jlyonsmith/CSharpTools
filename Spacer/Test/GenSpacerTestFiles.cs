@@ -19,7 +19,7 @@ public class Program
             "    2\"\n" + 
             "f\n" +
             "\n" +
-            "    \"@\"\n" +
+            "    \" @\"\n" +
             "\tg\n" +
             "\n");
 
@@ -28,9 +28,9 @@ public class Program
             "a:\n" +
             "{\n" + 
             "\tb: 1,\n" + 
-            "  c: 2\n" + 
+            "  c: 2,\n" + 
             " \t d:\t3\n" + 
-            "\t\n" + 
+            " }\n" + 
             "\n");
     }
 }
