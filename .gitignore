@@ -11,14 +11,10 @@
 msbuild.log
 Hammer/Test/*.txt
 Hammer/Test/*.exe
-obj/
-bin/
-ipch/
 Scratch/
 TestDeployment/
 TestResults/
 test-results/
-Debug/
-Release/
-_UpgradeReport_Files/
-.idea/
+**/obj/**
+**/bin/Debug/**
+**/bin/Release/**
