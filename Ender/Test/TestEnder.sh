@@ -1,6 +1,6 @@
 mcs GenEnderTestFiles.cs
 mono GenEnderTestFiles.exe
-ENDER="../bin/Debug/Ender.exe"
+ENDER="../Ender.exe"
 mono $ENDER -?
 mono $ENDER cr.txt
 mono $ENDER lf.txt

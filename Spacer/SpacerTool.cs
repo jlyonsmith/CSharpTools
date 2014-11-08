@@ -20,23 +20,34 @@ namespace Tools
         public enum Whitespace
         {
             Mixed,
+            M = Mixed,
             Tabs,
+            T = Tabs,
             Spaces,
+            S = Spaces
         }
+
+        private enum FileType 
+        {
+            CSharp,
+            Other
+        }
+
+        private FileType fileType = FileType.Other;
 
         [CommandLineArgument("help", ShortName="?", Description="Shows this help")]
         public bool ShowUsage { get; set; }
         [CommandLineArgument("mode", ShortName="m", Description="The convert mode. One of mixed, tabs or spaces.  Default is to just display the files current state.",
-            Initializer=typeof(SpacerTool), MethodName="ParseWhitespace")]
+            Initializer=typeof(SpacerTool), MethodName="ParseConvertMode")]
         public Whitespace? ConvertMode { get; set; }
         [DefaultCommandLineArgument(Description="The input file to analyze and convert", ValueHint="INPUTFILE")]
-        public string InputFileName { get; set; }
+        public ParsedFilePath InputFileName { get; set; }
         [CommandLineArgument("output", ShortName="o", Description="An optional output file name.  Default is to use the input file.", ValueHint="OUTPUTFILE")]
-        public string OutputFileName { get; set; }
+        public ParsedFilePath OutputFileName { get; set; }
         [CommandLineArgument("tabsize", ShortName="t", Description="The tabsize to assume. Default is 4 spaces.", ValueHint="TABSIZE")]
         public int? TabSize { get; set; }
 
-        public static Whitespace? ParseMode(string arg)
+        public static Whitespace? ParseConvertMode(string arg)
         {
             return (Whitespace?)Enum.Parse(typeof(Whitespace), arg, true);
         }
@@ -62,6 +73,11 @@ namespace Tools
                 return;
             }
 
+            if (InputFileName.Extension == ".cs")
+            {
+                fileType = FileType.CSharp;
+            }
+
             if (OutputFileName == null)
             {
                 OutputFileName = InputFileName;
@@ -84,91 +100,54 @@ namespace Tools
             int beforeTabs;
             int beforeSpaces;
 
-            CountBolSpacesAndTabs(lines, out beforeTabs, out beforeSpaces);
+            if (fileType == FileType.CSharp)
+                CountCSharpBolSpacesAndTabs(lines, out beforeTabs, out beforeSpaces);
+            else
+                CountBolSpacesAndTabs(lines, out beforeTabs, out beforeSpaces);
 
             if (ConvertMode.HasValue)
             {
-                SmartUntabify(lines);
+                if (fileType == FileType.CSharp)
+                    CSharpUntabify(lines);
+                else
+                    Untabify(lines);
 
                 if (this.ConvertMode == Whitespace.Tabs)
                 {
-                    SmartTabify(lines);
+                    if (fileType == FileType.CSharp)
+                        CSharpTabify(lines);
+                    else
+                        Tabify(lines);
                 }
             }
 
             StringBuilder sb = new StringBuilder();
             Whitespace ws = (beforeTabs > 0) ? (beforeSpaces > 0 ? Whitespace.Mixed : Whitespace.Tabs) : Whitespace.Spaces;
 
-            sb.AppendFormat("\"{0}\", {1}", this.InputFileName, Enum.GetName(typeof(Whitespace), ws).ToLower());
+            sb.AppendFormat("\"{0}\", {1}, {2}", 
+                this.InputFileName, fileType == FileType.CSharp ? "c#" : "other", Enum.GetName(typeof(Whitespace), ws).ToLower());
 
             if (this.ConvertMode.HasValue)
             {
                 int afterTabs, afterSpaces;
 
-                CountBolSpacesAndTabs(lines, out afterTabs, out afterSpaces);
+                if (fileType == FileType.CSharp)
+                    CountCSharpBolSpacesAndTabs(lines, out afterTabs, out afterSpaces);
+                else
+                    CountBolSpacesAndTabs(lines, out afterTabs, out afterSpaces);
 
-                ws = (afterTabs > 0) ? (afterSpaces > 0 ? Whitespace.Mixed : Whitespace.Tabs) : Whitespace.Spaces;
-
-                if (ws == Whitespace.Mixed)
+                using (StreamWriter writer = new StreamWriter(this.OutputFileName))
                 {
-                    WriteError("Program was unable to do the conversion - file is still mixed.  Is this C# file?");
-                    return;
-                }
-
-                if (afterTabs != beforeTabs || afterSpaces != beforeSpaces)
-                {
-                    using (StreamWriter writer = new StreamWriter(this.OutputFileName))
+                    foreach (var line in lines)
                     {
-                        foreach (var line in lines)
-                        {
-                            writer.Write(line);
-                        }
+                        writer.Write(line);
                     }
-
-                    sb.AppendFormat(" -> \"{0}\", {1}", this.OutputFileName, afterTabs > 0 ? "tabs" : "spaces");
                 }
+
+                sb.AppendFormat(" -> \"{0}\", {1}", this.OutputFileName, afterTabs > 0 ? "tabs" : "spaces");
             }
 
             WriteMessage(sb.ToString());
-        }
-
-        public void CountBolSpacesAndTabs(List<string> lines, out int numBolTabs, out int numBolSpaces)
-        {
-            numBolSpaces = 0;
-            numBolTabs = 0;
-            bool inStringConst = false;
-
-            foreach (string line in lines)
-            {
-                bool bol = true;
-
-                for (int i = 0; i < line.Length; i++)
-                {
-                    char c = line[i];
-                    char c1 = i < line.Length - 1 ? line[i + 1] : '\0';
-
-                    if (inStringConst)
-                    {
-                        if (c == '"' && c1 != '"')
-                            inStringConst = false;
-                    }
-                    else
-                    {
-                        if (c == '@' && c1 == '"')
-                            inStringConst = true;
-                    }
-
-                    if (bol && !inStringConst)
-                    {
-                        if (c == ' ')
-                            numBolSpaces++;
-                        else if (c == '\t')
-                            numBolTabs++;
-                        else
-                            bol = false;
-                    }
-                }
-            }
         }
 
         public List<string> ReadFileLines()
@@ -213,7 +192,46 @@ namespace Tools
             return lines;
         }
 
-        public void SmartUntabify(List<string> lines)
+        public void CountCSharpBolSpacesAndTabs(List<string> lines, out int numBolTabs, out int numBolSpaces)
+        {
+            numBolSpaces = 0;
+            numBolTabs = 0;
+            bool inStringConst = false;
+
+            foreach (string line in lines)
+            {
+                bool bol = true;
+
+                for (int i = 0; i < line.Length; i++)
+                {
+                    char c = line[i];
+                    char c1 = i < line.Length - 1 ? line[i + 1] : '\0';
+
+                    if (inStringConst)
+                    {
+                        if (c == '"' && c1 != '"')
+                            inStringConst = false;
+                    }
+                    else
+                    {
+                        if (c == '@' && c1 == '"')
+                            inStringConst = true;
+                    }
+
+                    if (bol && !inStringConst)
+                    {
+                        if (c == ' ')
+                            numBolSpaces++;
+                        else if (c == '\t')
+                            numBolTabs++;
+                        else
+                            bol = false;
+                    }
+                }
+            }
+        }
+
+        public void CSharpUntabify(List<string> lines)
         {
             // Expand tabs anywhere on a line, but not inside @"..." strings
 
@@ -277,7 +295,7 @@ namespace Tools
             }
         }
 
-        public void SmartTabify(List<string> lines)
+        public void CSharpTabify(List<string> lines)
         {
             // Insert tabs where there are only spaces between two tab stops, but only at the beginning of lines
             // and not inside @"..." strings
@@ -327,6 +345,100 @@ namespace Tools
                             inStringConst = true;
                             continue;
                         }
+                    }
+
+                    sb.Append(c);
+                }
+
+                lines[i] = sb.ToString();
+                sb.Clear();
+            }
+        }
+
+        public void CountBolSpacesAndTabs(List<string> lines, out int numBolTabs, out int numBolSpaces)
+        {
+            numBolSpaces = 0;
+            numBolTabs = 0;
+
+            foreach (string line in lines)
+            {
+                bool bol = true;
+
+                for (int i = 0; i < line.Length; i++)
+                {
+                    char c = line[i];
+
+                    if (bol)
+                    {
+                        if (c == ' ')
+                            numBolSpaces++;
+                        else if (c == '\t')
+                            numBolTabs++;
+                        else
+                            bol = false;
+                    }
+                }
+            }
+        }
+
+        public void Untabify(List<string> lines)
+        {
+            // Expand tabs anywhere on a line
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                string line = lines[i];
+
+                for (int j = 0; j < line.Length; j++)
+                {
+                    char c = line[j];
+
+                    if (c == '\t')
+                    {
+                        // Add spaces to next tabstop
+                        int numSpaces = this.TabSize.Value - (sb.Length % this.TabSize.Value);
+
+                        sb.Append(' ', numSpaces);
+                        continue;
+                    }
+
+                    sb.Append(c);
+                }
+
+                lines[i] = sb.ToString();
+                sb.Clear();
+            }
+        }
+
+        public void Tabify(List<string> lines)
+        {
+            // Insert tabs where there are only spaces between two tab stops, but only at the beginning of lines
+
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                string line = lines[i];
+                bool beginningOfLine = true;
+                int numBolSpaces = 0;
+
+                for (int j = 0; j < line.Length; j++)
+                {
+                    char c = line[j];
+
+                    if (beginningOfLine && c != ' ')
+                    {
+                        sb.Append(new string('\t', numBolSpaces / this.TabSize.Value));
+                        sb.Append(new string(' ', numBolSpaces % this.TabSize.Value));
+                        beginningOfLine = false;
+                    }
+
+                    if (beginningOfLine && c == ' ')
+                    {
+                        // Just count the spaces
+                        numBolSpaces++;
+                        continue;
                     }
 
                     sb.Append(c);

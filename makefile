@@ -5,8 +5,8 @@ VERSION=2.1.11012
 PROJECT=CSharpTools
 SCRATCH=scratch
 tools=Doozer Ender Lindex Spacer Strapper Vamper Cleaner Projector
-otherfiles=makefile template.sh
-markdown=README LICENSE
+otherfiles=makefile template.sh csharptools
+markdown=README.md LICENSE.md
 lc=$(shell echo $(1) | tr A-Z a-z)
 zipfile=$(PROJECT)-$(VERSION).tar.gz
 
@@ -68,7 +68,10 @@ $(foreach X,$(markdown),$(eval $(call copyrule,$(SCRATCH)/$(X),$(X).md)))
 # NOTE: Test this by going to scratch dir and running there!
 
 .PHONY: install
-install: $(PREFIX)/bin $(PREFIX)/lib $(foreach X,$(tools),$(PREFIX)/bin/$(call lc, $(X)))
+install: $(PREFIX)/bin \
+		 $(PREFIX)/lib \
+		 $(PREFIX)/bin/csharptools \
+		 $(foreach X,$(tools),$(PREFIX)/bin/$(call lc, $(X)))
 ifdef HOMEBREW
 install: $(foreach X,$(markdown),$(PREFIX)/$(X))
 endif
@@ -77,6 +80,11 @@ $(PREFIX)/bin $(PREFIX)/lib:
 	mkdir -p $@
 
 $(foreach X,$(tools),$(eval $(call mkscriptrule,$(X))))
+
+$(PREFIX)/bin/csharptools: $(PREFIX)/csharptools 
+	cp csharptools $@
+	chmod u+x $@
+
 ifdef HOMEBREW
 $(foreach X,$(markdown),$(eval $(call copyrule,$(PREFIX)/$(X),$(X))))
 endif

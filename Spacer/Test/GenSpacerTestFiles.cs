@@ -22,5 +22,15 @@ public class Program
             "    \"@\"\n" +
             "\tg\n" +
             "\n");
+
+        File.WriteAllText(
+            "Test.tson", 
+            "a:\n" +
+            "{\n" + 
+            "\tb: 1,\n" + 
+            "  c: 2\n" + 
+            " \t d:\t3\n" + 
+            "\t\n" + 
+            "\n");
     }
 }

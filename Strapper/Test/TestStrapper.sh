@@ -1,3 +1,3 @@
-STRAPPER="../bin/Debug/Strapper.exe"
+STRAPPER="../Strapper.exe"
 mono $STRAPPER -?
 mono $STRAPPER -w:Message Test.resx

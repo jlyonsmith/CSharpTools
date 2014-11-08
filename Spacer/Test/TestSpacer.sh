@@ -1,11 +1,27 @@
 mcs GenSpacerTestFiles.cs
 mono GenSpacerTestFiles.exe
-SPACER="../bin/Debug/Spacer.exe"
-mono $SPACER -h
-hexdump test.txt
-mono $SPACER test.txt -m:t -o:test_tabs.txt
-hexdump test_tabs.txt
-mono $SPACER test.txt -m:s -o:test_spaces.txt
-hexdump test_spaces.txt
+SPACER="../Spacer.exe"
+mono $SPACER -?
+echo Test.cs:
+hexdump Test.cs
+mono $SPACER Test.cs -m:t -o:TestTabs.cs
+mono $SPACER TestTabs.cs
+echo TestTabs.cs:
+hexdump TestTabs.cs
+mono $SPACER Test.cs -m:s -o:TestSpaces.cs
+mono $SPACER TestSpaces.cs
+echo TestSpaces.cs:
+hexdump TestSpaces.cs
+echo -----------------
+echo Test.tson:
+hexdump Test.tson
+mono $SPACER Test.tson -m:t -o:TestTabs.tson
+mono $SPACER TestTabs.tson
+echo TestTabs.tson:
+hexdump TestTabs.tson
+mono $SPACER Test.tson -m:s -o:TestSpaces.tson
+mono $SPACER TestSpaces.tson
+echo TestSpaces.tson:
+hexdump TestSpaces.tson
 # rm GenSpacerTestFiles.exe
 # rm *.txt
