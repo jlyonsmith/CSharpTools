@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Version>
+  <Files>
+    <File>Test/Properties/AssemblyInfo.cs</File>
+  </Files>
+  <Major>1</Major>
+  <Minor>0</Minor>
+  <Build>10210</Build>
+  <Revision>0</Revision>
+  <StartYear>2015</StartYear>
+  <Company>Pretend Company</Company>
+  <Product>Pretend Product</Product>
+  <Copyright>Copyright (c) 2015, Pretend Person</Copyright>
+</Version>

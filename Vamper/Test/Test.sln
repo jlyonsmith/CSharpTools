@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{9A873C48-941A-4062-88B7-5039C7D1E905}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{72904C6A-816D-4FFC-A77E-0CEEA6162FFE}"
+	ProjectSection(SolutionItems) = preProject
+		Test.version = Test.version
+		Test.version.config = Test.version.config
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9A873C48-941A-4062-88B7-5039C7D1E905}.Debug|x86.ActiveCfg = Debug|x86
+		{9A873C48-941A-4062-88B7-5039C7D1E905}.Debug|x86.Build.0 = Debug|x86
+		{9A873C48-941A-4062-88B7-5039C7D1E905}.Release|x86.ActiveCfg = Release|x86
+		{9A873C48-941A-4062-88B7-5039C7D1E905}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal

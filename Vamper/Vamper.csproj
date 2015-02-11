@@ -50,6 +50,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="Test\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Default.version.config" />

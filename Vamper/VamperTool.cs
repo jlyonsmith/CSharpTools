@@ -30,12 +30,34 @@ namespace Tools
         public bool DoUpdate { get; set; }
 
         public string VersionFile;
-        private int major;
-        private int minor;
-        private int build;
-        private int revision;
-        private int startYear;
-        private string[] fileList;
+        Dictionary<string, string> tags = new Dictionary<string, string>();
+        private IEnumerable<string> fileList;
+
+        public int Major
+        {
+            get { return int.Parse(tags["Major"]); }
+            set { tags["Major"] = value.ToString(); }
+        }
+        public int Minor
+        {
+            get { return int.Parse(tags["Minor"]); }
+            set { tags["Minor"] = value.ToString(); }
+        }
+        public int Build
+        {
+            get { return int.Parse(tags["Build"]); }
+            set { tags["Build"] = value.ToString(); }
+        }
+        public int Revision
+        {
+            get { return int.Parse(tags["Revision"]); }
+            set { tags["Revision"] = value.ToString(); }
+        }
+        public int StartYear
+        {
+            get { return int.Parse(tags["StartYear"]); }
+            set { tags["StartYear"] = value.ToString(); }
+        }
 
         public override void Execute()
         {
@@ -74,31 +96,33 @@ namespace Tools
 
             if (File.Exists(versionFile))
             {
-                ReadVersionFile(versionFile);
+                if (!ReadVersionFile(versionFile))
+                    return;
             }
             else
             {
-                major = 1;
-                minor = 0;
-                build = 0;
-                revision = 0;
-                startYear = DateTime.Now.Year;
+                Major = 1;
+                Minor = 0;
+                Build = 0;
+                Revision = 0;
+                StartYear = DateTime.Now.Year;
+
                 fileList = new string[] { };
             }
             
-            int jBuild = ProjectDate(startYear);
+            int jBuild = ProjectDate(StartYear);
             
-            if (build != jBuild)
+            if (Build != jBuild)
             {
-                revision = 0;
-                build = jBuild;
+                Revision = 0;
+                Build = jBuild;
             }
             else
             {
-                revision++;
+                Revision++;
             }
 
-            WriteMessage("New version {0} be {1}.{2}.{3}.{4}", this.DoUpdate ? "will" : "would", major, minor, build, revision);
+            WriteMessage("New version {0} be {1}.{2}.{3}.{4}", this.DoUpdate ? "will" : "would", Major, Minor, Build, Revision);
            
             if (this.DoUpdate)
                 WriteMessage("Updating version information:");
@@ -112,7 +136,7 @@ namespace Tools
             }
 
             List<FileType> fileTypes = ReadVersionConfigFile(versionConfigFile);
-            IEnumerable<string> expandedFileList = fileList.Select(x => SubstituteVersions(x));
+            IEnumerable<string> expandedFileList = fileList.Select(x => ReplaceTags(x));
 
             foreach (string file in expandedFileList)
             {
@@ -192,17 +216,9 @@ namespace Tools
             return new Regex("^" + Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".") + "$"); 
         }
 
-        private string SubstituteVersions(string input)
+        private string ReplaceTags(string input)
         {
-            StringBuilder sb = new StringBuilder(input);
-
-            sb.Replace("${Major}", major.ToString());
-            sb.Replace("${Minor}", minor.ToString());
-            sb.Replace("${Build}", build.ToString());
-            sb.Replace("${Revision}", revision.ToString());
-            sb.Replace("${StartYear}", startYear.ToString());
-
-            return sb.ToString();
+            return StringUtility.ReplaceTags(input, "${", "}", tags, TaggedStringOptions.LeaveUnknownTags);
         }
 
         private List<FileType> ReadVersionConfigFile(string versionConfigFileName)
@@ -217,8 +233,8 @@ namespace Tools
                 fileType.name = (string)fileTypeElement.Element("Name");
                 fileType.fileSpecs = fileTypeElement.Elements("FileSpec").Select<XElement, Regex>(x => WildcardToRegex((string)x)).ToArray();
                 fileType.updates = fileTypeElement.Elements("Update").Select<XElement, Tuple<string, string>>(
-                    x => new Tuple<string, string>((string)x.Element("Search"), SubstituteVersions((string)x.Element("Replace")))).ToArray();
-                fileType.write = SubstituteVersions((string)fileTypeElement.Element("Write"));
+                    x => new Tuple<string, string>((string)x.Element("Search"), ReplaceTags((string)x.Element("Replace")))).ToArray();
+                fileType.write = ReplaceTags((string)fileTypeElement.Element("Write"));
 
                 fileTypes.Add(fileType);
             }
@@ -226,29 +242,41 @@ namespace Tools
             return fileTypes;
         }
 
-        private void ReadVersionFile(string versionFileName)
+        private bool ReadVersionFile(string versionFileName)
         {
             XDocument versionDoc = XDocument.Load(versionFileName);
 
-            // TODO: If the field is empty, what to do...?
-            major = (int)(versionDoc.Descendants("Major").First());
-            minor = (int)(versionDoc.Descendants("Minor").First());
-            build = (int)(versionDoc.Descendants("Build").First());
-            revision = (int)(versionDoc.Descendants("Revision").First());
-            startYear = (int)(versionDoc.Descendants("StartYear").First());
-            fileList = versionDoc.Descendants("File").Select(x => (string)x).ToArray();
+            tags = versionDoc.Root.Elements().Where(x => x.Name != "Files").ToDictionary<XElement, string, string>(
+                x => x.Name.ToString(), x => x.Value);
+
+            if (!tags.ContainsKey("Major") || !tags.ContainsKey("Minor") || 
+                !tags.ContainsKey("Build") || !tags.ContainsKey("Revision") || 
+                !tags.ContainsKey("StartYear"))
+            {
+                WriteError("Version file must at least contain Major, Minor, Build, Revision and StartYear tags");
+                return false;
+            }
+
+            var filesNode = versionDoc.Root.Element("Files");
+
+            if (filesNode == null)
+            {
+                WriteError("Version file must contain a Files node");
+                return false;
+            }
+
+            fileList = filesNode.Descendants().Select(x => (string)x).ToArray();
+
+            return true;
         }
 
-        private void WriteVersionFile(string versionFileName, string[] fileList)
+        private void WriteVersionFile(string versionFileName, IEnumerable<string> fileList)
         {
             XElement doc = 
                 new XElement("Version",
                     new XElement("Files", fileList.Select(f => new XElement("File", f)).ToArray()),
-                    new XElement("Major", major),
-                    new XElement("Minor", minor),
-                    new XElement("Build", build),
-                    new XElement("Revision", revision),
-                    new XElement("StartYear", startYear));
+                    tags.Select(t => new XElement(t.Key, t.Value)).ToArray()
+                );
 
             doc.Save(versionFileName);
         }
