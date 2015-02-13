@@ -11,6 +11,7 @@
     <File>Cleaner/Properties/AssemblyInfo.cs</File>
     <File>CSharpTools.nuspec</File>
     <File>makefile</File>
+    <File>Scratch/CSharpTools.version.txt</File>
   </Files>
   <Major>2</Major>
   <Minor>2</Minor>
