@@ -93,15 +93,12 @@ namespace Tools
         public string CsFileName { get; set; }
         [CommandLineArgument("namespace", ShortName="n", ValueHint="NAMESPACE", Description="Namespace to use in generated C#.")]
         public string Namespace { get; set; }
-        [CommandLineArgument("basename", ShortName="b", Description="The root name of the resource file without its extension " +
-            "but including any fully qualified namespace name. For " +
-            "example, the base name for MyNamespace.MyClass.en-US.resources " +
-            "would be MyNamespace.MyClass. See ResourceManager constructor " +
-            "documentation for details.  If not provided the typeof the " +
-            "generated class is used.")]
+        [CommandLineArgument("basename", ShortName="b", Description="The root name of the resource file without its extension but including any " +
+            "fully qualified namespace name. For example, the root name for the resource file named MyApplication.MyResource.en-US.resources " +
+            "is MyApplication.MyResource. See ResourceManager constructor documentation for details.  If not provided the fully qualified type name of the " +
+            "generated class is used as the file name of the resource. For example, given a type named MyCompany.MyProduct.MyType, the resource manager looks " +
+            "for a .resources file named MyCompany.MyProduct.MyType.resources in the assembly that defines MyType.")]
         public string BaseName { get; set; }
-        [CommandLineArgument("wrapper", ShortName="w", Description="String wrapper class. 'Message' or 'String' are supported. See Message.cs in ToolBelt library for details. Required.")]
-        public string WrapperClass { get; set; }
         [CommandLineArgument("access", ShortName="a", Description="Access modifier of the wrapper class. Must be internal or public. Default is public.",
             Initializer=typeof(StrapperTool), MethodName="ParseModifier")]
         public string AccessModifier { get; set; }
@@ -134,12 +131,6 @@ namespace Tools
                 WriteError("A .resx file must be specified");
                 return;
             }
-           
-            if (WrapperClass == null)
-            {
-                WriteError("A string wrapper class must be specified");
-                return;
-            } 
            
             if (CsFileName == null)
             {
@@ -372,17 +363,8 @@ using System.Globalization;
                     );
                 }
 
-                if ((string.Equals(WrapperClass, "String", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(WrapperClass, "System.String", StringComparison.Ordinal)))
-                {
-                    WriteStringMethodBody(item, Path.GetFileNameWithoutExtension(CsFileName), 
-                        builder.ToString(), paramCount, parameters, parametersWithTypes);
-                }
-                else
-                {
-                    WriteMessageMethodBody(item, Path.GetFileNameWithoutExtension(CsFileName), 
-                        builder.ToString(), paramCount, parameters, parametersWithTypes);
-                }
+                WriteMethodBody(item, Path.GetFileNameWithoutExtension(CsFileName), 
+                    builder.ToString(), paramCount, parameters, parametersWithTypes);
             }
             else
             {
@@ -399,49 +381,7 @@ using System.Globalization;
             }
         }
 
-        private void WriteStringMethodBody(
-            ResourceItem item, 
-            string resourceClassName, 
-            string methodName, 
-            int paramCount, 
-            string parameters, 
-            string parametersWithTypes)
-        {
-            string str = "temp";
-            if (parameters.Length > 0)
-            {
-                str = "string.Format(CultureInfo.CurrentCulture, temp, " + parameters + ")";
-            }
-            if (paramCount == 0)
-            {
-                writer.Write(string.Format(CultureInfo.InvariantCulture, 
-                    @"
-    public static {0} {1}
-    {{
-        get
-        {{
-            string temp = ResourceManager.GetString(""{2}"", CultureInfo.CurrentUICulture);
-            return {3};
-        }}
-    }}
-"
-                   , WrapperClass, methodName, item.Name, str));
-            }
-            else
-            {
-                writer.Write(string.Format(CultureInfo.InvariantCulture, 
-                    @"
-    public static {0} {1}({2})
-    {{
-        string temp = ResourceManager.GetString(""{3}"", CultureInfo.CurrentUICulture);
-        return {4};
-    }}
-"
-                   , WrapperClass, methodName, parametersWithTypes, item.Name, str));
-            }
-        }
-
-        private void WriteMessageMethodBody(
+        private void WriteMethodBody(
             ResourceItem item, 
             string resourceClassName, 
             string methodName, 
@@ -453,27 +393,27 @@ using System.Globalization;
             {
                 writer.Write(string.Format(CultureInfo.InvariantCulture, 
                     @"
-    public static {0} {1}
+    public static string {0}
     {{
         get
         {{
-            return new {0}(""{2}"", typeof({3}), ResourceManager, null);
+            return ResourceManager.GetString(""{1}"", CultureInfo.CurrentUICulture);
         }}
     }}
 "
-                   , WrapperClass, methodName, item.Name, resourceClassName));
+                   , methodName, item.Name));
             }
             else
             {
                 writer.Write(string.Format(CultureInfo.InvariantCulture, 
                     @"
-    public static {0} {1}({2})
+    public static string {0}({1})
     {{
-        Object[] o = {{ {4} }};
-        return new {0}(""{3}"", typeof({5}), ResourceManager, o);
+        string format = ResourceManager.GetString(""{2}"", CultureInfo.CurrentUICulture);
+        return string.Format(CultureInfo.CurrentCulture, format, {3});
     }}
 "
-                   , WrapperClass, methodName, parametersWithTypes, item.Name, parameters, resourceClassName));
+                   , methodName, parametersWithTypes, item.Name, parameters));
             }
         }
 

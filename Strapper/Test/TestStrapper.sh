@@ -1,3 +1,4 @@
 STRAPPER="../Strapper.exe"
 mono $STRAPPER -?
-mono $STRAPPER -w:Message Test.resx
+mono $STRAPPER Test1.strings
+mono $STRAPPER Test2.resx
