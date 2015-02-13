@@ -16,6 +16,9 @@
   <Major>2</Major>
   <Minor>2</Minor>
   <Build>20212</Build>
-  <Revision>0</Revision>
+  <Revision>1</Revision>
   <StartYear>2014</StartYear>
+  <Company>John Lyon-Smith</Company>
+  <Product>CSharpTools</Product>
+  <Copyright>Copyright (c) 2015, John Lyon-Smith</Copyright>
 </Version>

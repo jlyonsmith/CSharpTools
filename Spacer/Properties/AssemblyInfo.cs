@@ -13,11 +13,11 @@ using System.Runtime.InteropServices;
                                "The tool reports on beginning-of-line tabs/spaces. " + 
                                "All tabs not at the beginning of a line are replaced with spaces. " + 
                                "Spaces/tabs inside C# multi-line strings are ignored.")]
-[assembly: AssemblyCompany("${Company}")]
-[assembly: AssemblyProduct("${Product}")]
-[assembly: AssemblyCopyright("${Copyright}")]
+[assembly: AssemblyCompany("John Lyon-Smith")]
+[assembly: AssemblyProduct("CSharpTools")]
+[assembly: AssemblyCopyright("Copyright (c) 2015, John Lyon-Smith")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: AssemblyVersion("2.2.0.0")]
-[assembly: AssemblyFileVersion("2.2.20212.0")]
+[assembly: AssemblyFileVersion("2.2.20212.1")]
