@@ -14,9 +14,9 @@ using ToolBelt;
 
 namespace Tools
 {
-    [CommandLineTitle("")]
-    [CommandLineDescription("")]
-    [CommandLineCopyright("Copyright (c) John Lyon-Smith 2014")]
+    [CommandLineTitle("Strongly Typed String Resource Class Wrapper Generator")]
+    [CommandLineDescription("Generates wrapper methods to make parameterized string resources safer")]
+    [CommandLineCopyright("Copyright (c) John Lyon-Smith 2015")]
     public class StrapperTool : ToolBase
     {
         #region Classes
