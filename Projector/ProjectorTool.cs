@@ -95,7 +95,7 @@ namespace Tools
 
         private static Regex WildcardToRegex(string pattern)
         {
-            return new Regex("^" + Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".") + "$"); 
+            return new Regex("^" + Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".") + "$", RegexOptions.Compiled); 
         }
 
         private bool IsExcludedDir(string dir)
@@ -128,7 +128,8 @@ namespace Tools
                 return;
 
             var contents = File.ReadAllText(file);
-            MatchCollection matches = Regex.Matches(contents, @"(?<=path = ).*");
+            var regex = new Regex(@"(?<=path = ).*", RegexOptions.Compiled);
+            MatchCollection matches = regex.Matches(contents);
 
             foreach (var match in matches)
                 excludeDirs.Add(WildcardToRegex("*/" + ((Match)match).Groups[0].Value));
@@ -238,7 +239,7 @@ namespace Tools
 
                 if (IsExcludedFile(dest))
                 {
-                    WriteMessage("Excluded file {0}", sourcePath);
+                    WriteMessage("Excluded file {0}", file);
                     continue;
                 }
 

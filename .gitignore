@@ -18,3 +18,4 @@ test-results/
 **/obj/**
 **/bin/Debug/**
 **/bin/Release/**
+**/packages/**

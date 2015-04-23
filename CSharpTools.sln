@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lindex", "Lindex\Lindex.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cleaner", "Cleaner\Cleaner.csproj", "{4004FE1F-D059-43B1-B3B5-B98A5E6AE4B9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Popper", "Popper\Popper.csproj", "{D215F02E-C781-40A5-B1F3-94DCCC366FAB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -64,6 +66,10 @@ Global
 		{AC21794C-3783-4048-913C-A9A4CEEC23B2}.Debug|x86.Build.0 = Debug|x86
 		{AC21794C-3783-4048-913C-A9A4CEEC23B2}.Release|x86.ActiveCfg = Release|x86
 		{AC21794C-3783-4048-913C-A9A4CEEC23B2}.Release|x86.Build.0 = Release|x86
+		{D215F02E-C781-40A5-B1F3-94DCCC366FAB}.Debug|x86.ActiveCfg = Debug|x86
+		{D215F02E-C781-40A5-B1F3-94DCCC366FAB}.Debug|x86.Build.0 = Debug|x86
+		{D215F02E-C781-40A5-B1F3-94DCCC366FAB}.Release|x86.ActiveCfg = Release|x86
+		{D215F02E-C781-40A5-B1F3-94DCCC366FAB}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection

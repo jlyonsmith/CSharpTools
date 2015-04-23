@@ -28,8 +28,9 @@ namespace Tools
         public bool ShowUsage { get; set; }
         [CommandLineArgument("update", ShortName="u", Description="Increment the build number and update all files")]
         public bool DoUpdate { get; set; }
+        [DefaultCommandLineArgument(ValueHint="VERSION_FILE", Description="Version file")]
+        public ParsedPath VersionFile { get; set; }
 
-        public string VersionFile;
         Dictionary<string, string> tags = new Dictionary<string, string>();
         private IEnumerable<string> fileList;
 
@@ -68,17 +69,19 @@ namespace Tools
                 return;
             }
 
-            string versionFile = this.VersionFile;
+            var versionFile = this.VersionFile;
             
             if (String.IsNullOrEmpty(versionFile))
             {
-                versionFile = FindVersionFile();
+                var files = DirectoryUtility.GetFiles(versionFile, SearchScope.RecurseParentDirectories);
             
-                if (versionFile == null)
+                if (files.Count == 0)
                 {
                     WriteError("Unable to find a .version file in this or parent directories.");
                     return;
                 }
+
+                versionFile = files[0];
             }
             else if (!File.Exists(versionFile))
             {
@@ -86,9 +89,8 @@ namespace Tools
                 return;
             }
             
-            string versionFileName = Path.GetFileName(versionFile);
-            string projectName = versionFileName.Substring(0, versionFileName.IndexOf('.'));
-            string versionConfigFile = versionFile + ".config";
+            string projectName = versionFile.File;
+            var versionConfigFile = versionFile.WithExtension(".config");
 
             WriteMessage("Version file is '{0}'", versionFile);
             WriteMessage("Version config file is '{0}'", versionConfigFile);
@@ -221,7 +223,7 @@ namespace Tools
             return StringUtility.ReplaceTags(input, "${", "}", tags, TaggedStringOptions.LeaveUnknownTags);
         }
 
-        private List<FileType> ReadVersionConfigFile(string versionConfigFileName)
+        private List<FileType> ReadVersionConfigFile(ParsedPath versionConfigFileName)
         {
             XDocument versionConfigFile = XDocument.Load(versionConfigFileName);
             var fileTypes = new List<FileType>();
@@ -242,7 +244,7 @@ namespace Tools
             return fileTypes;
         }
 
-        private bool ReadVersionFile(string versionFileName)
+        private bool ReadVersionFile(ParsedPath versionFileName)
         {
             XDocument versionDoc = XDocument.Load(versionFileName);
 
@@ -279,32 +281,6 @@ namespace Tools
                 );
 
             doc.Save(versionFileName);
-        }
-
-        private string FindVersionFile()
-        {
-            var fileSpec = "*.version";
-            string dir = Environment.CurrentDirectory;
-
-            do
-            {
-                string[] files = Directory.GetFiles(dir, fileSpec);
-            
-                if (files.Length > 0)
-                {
-                    return files[0];
-                }
-            
-                int i = dir.LastIndexOf(Path.DirectorySeparatorChar);
-            
-                if (i <= 0)
-                    break;
-            
-                dir = dir.Substring(0, i);
-            }
-            while (true);
-
-            return null;
         }
 
         static private int ProjectDate(int startYear)
