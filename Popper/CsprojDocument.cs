@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace Tools
 {
@@ -21,12 +22,6 @@ namespace Tools
 		public string Guid { get; set; }
 	}
 
-	public class CsprojConfiguration
-	{
-		public string Configuration { get; set; }
-		public string Platform { get; set; }
-	}
-
     public class CsprojDocument
     {
 		XNamespace ns = "http://schemas.microsoft.com/developer/msbuild/2003";
@@ -36,12 +31,10 @@ namespace Tools
 		string projectGuid;
 		List<CsprojReference> refs;
 		List<CsprojProjectReference> projRefs;
-		List<CsprojConfiguration> configs;
 
 		public List<CsprojReference> References { get { return refs; } }
 		public List<CsprojProjectReference> ProjectReferences { get { return projRefs; } }
 		public string ProjectGuid { get { return projectGuid; } }
-		public List<CsprojConfiguration> Configurations { get { return configs; } }
 
         private CsprojDocument() { }
 
@@ -49,7 +42,6 @@ namespace Tools
 		{
 			refs = new List<CsprojReference>();
 			projRefs = new List<CsprojProjectReference>();
-			configs = new List<CsprojConfiguration>();
 
 			this.xdoc = XDocument.Parse(content);
 
@@ -86,29 +78,6 @@ namespace Tools
 			}
 
 			projRefElems.Remove();
-
-			// Parse out the configs from PropertyGroups
-			var propGroups = xdoc.Descendants(ns + "PropertyGroup");
-			var configRegex = new Regex("^ *'\\$\\(Configuration\\)\\|\\$\\(Platform\\)' == '(?'config'.*?)\\|(?'platform'.*?)'", RegexOptions.ExplicitCapture);
-
-			foreach (var propGroup in propGroups)
-			{
-				var condition = propGroup.Attribute("Condition");
-
-				if (condition != null)
-				{
-					var match = configRegex.Match(condition.Value);
-
-					if (match.Success)
-					{
-						configs.Add(new CsprojConfiguration
-						{
-							Configuration = match.Groups["config"].Value,
-							Platform = match.Groups["platform"].Value
-						});
-					}
-				}
-			}
 
 			this.projectGuid = xdoc.Descendants(ns + "ProjectGuid").First().Value;
 		}
@@ -159,7 +128,7 @@ namespace Tools
 			}));
 
 			// Remove empty ItemGroups
-			var emptyItemGroups = xdoc.Descendants("ItemGroup").Where(e => !e.HasElements);
+			var emptyItemGroups = xdoc.Descendants(ns + "ItemGroup").Where(e => !e.HasElements);
 
 			if (emptyItemGroups.Count() > 0)
 			{

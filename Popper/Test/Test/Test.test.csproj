@@ -45,4 +45,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
 </Project>

@@ -31,7 +31,7 @@ namespace Tools
 	public sealed class SlnProjectConfiguration
 	{
 		public string Guid { get; set; }
-		public CsprojConfiguration ProjectConfiguration { get; set; }
+		public SlnConfiguration ProjectConfiguration { get; set; }
 		public SlnConfiguration SolutionConfiguration { get; set; }
 	}
 
@@ -135,7 +135,7 @@ namespace Tools
 							Configuration = match.Groups["slnConfig"].Value,
 							Platform = match.Groups["slnPlatform"].Value
 						},
-						ProjectConfiguration = new CsprojConfiguration
+						ProjectConfiguration = new SlnConfiguration
 						{
 							Configuration = match.Groups["prjConfig"].Value,
 							Platform = match.Groups["prjPlatform"].Value

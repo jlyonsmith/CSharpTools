@@ -84,6 +84,9 @@ namespace Tools
 
 				var localCsprojDocument = CsprojDocument.Parse(localCsprojPath);
 
+				var localSlnPath = GetSlnForProject(localCsprojPath);
+				var localSlnDocument = SlnDocument.Parse(localSlnPath);
+
                 slnDocument = SlnDocument.Parse(slnPath);
 
 				var existingSlnProject = slnDocument.Projects.FirstOrDefault(p => p.Name == this.ProjectName);
@@ -135,7 +138,7 @@ namespace Tools
 							csprojDocument.References.Add(new CsprojReference
 							{
 								Name = ProjectName,
-								HintPath = nugetPath.MakeRelativePath(csprojPath)
+								HintPath = nugetPath
 							});
 							saveCsprojs[csprojPath] = csprojDocument;
 						}
@@ -144,23 +147,6 @@ namespace Tools
 
 				if (swapDirection == SwapDirection.ToLocalProject)
 				{
-					// Ensure solution has the local project's config's
-					foreach (var configPlatform in localCsprojDocument.Configurations)
-					{
-						if (slnDocument.SolutionConfigurations.Find(cp => 
-						{
-							return cp.Configuration == configPlatform.Configuration && 
-								cp.Platform == configPlatform.Platform;
-						}) == null)
-						{
-							slnDocument.SolutionConfigurations.Add(new SlnConfiguration
-							{
-								Configuration = configPlatform.Configuration,
-								Platform = configPlatform.Platform
-							});
-						}
-					}
-
 					// Add enough configs to enable the project
 					foreach (var solutionConfig in slnDocument.SolutionConfigurations)
 					{
@@ -168,10 +154,10 @@ namespace Tools
 						{
 							Guid = localCsprojDocument.ProjectGuid,
 							SolutionConfiguration = solutionConfig,
-							ProjectConfiguration = new CsprojConfiguration 
+							ProjectConfiguration = new SlnConfiguration 
 							{
 								Configuration = solutionConfig.Configuration,
-								Platform = localCsprojDocument.Configurations[0].Platform
+								Platform = localSlnDocument.SolutionConfigurations.Find(c => c.Configuration == solutionConfig.Configuration).Platform
 							},
 						});
 					}
@@ -270,6 +256,16 @@ namespace Tools
 
             return files[0];
         }
+
+		private ParsedPath GetSlnForProject(ParsedPath csprojPath)
+		{
+			var files = DirectoryUtility.GetFiles(csprojPath.WithFileAndExtension("*.sln"), SearchScope.RecurseParentDirectories);
+
+			if (files.Count == 0)
+				throw new PopperToolExeception("Cannot find .sln for project '{0}'".InvariantFormat(csprojPath));
+
+			return files[0];
+		}
     }
 }
 
