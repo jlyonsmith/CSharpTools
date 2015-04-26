@@ -9,6 +9,7 @@
     <File>Lindex/Properties/AssemblyInfo.cs</File>
     <File>Doozer/Properties/AssemblyInfo.cs</File>
     <File>Cleaner/Properties/AssemblyInfo.cs</File>
+    <File>Popper/Properties/AssemblyInfo.cs</File>
     <File>CSharpTools.nuspec</File>
     <File>makefile</File>
     <File>Scratch/CSharpTools.version.txt</File>

@@ -8,9 +8,8 @@ A collection of useful command line development tools for C# programmers written
 - __Doozer__ displays //TODO: comments in C# source files
 - __Lindex__ generates a line index for text base log files
 - __Projector__ clones a project and renames and re-guids the project files
+- __Popper__ swaps a project back and forth between a NuGet and local project references
 
 __Strapper__ is useful in conjunction with my [ToolBelt](https://github.com/jlyonsmith/ToolBelt) project for generating strongly typed string resource wrappers.
-
-A [Python project](https://github.com/jlyonsmith/Tools) exists with many of the same tools, with their old names.
 
 [![Build Status](https://travis-ci.org/jlyonsmith/CSharpTools.svg?branch=master)](https://travis-ci.org/jlyonsmith/CSharpTools)
