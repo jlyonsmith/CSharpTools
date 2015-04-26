@@ -1,7 +1,6 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{94644E31-5B17-492F-9586-08BBF9817C30}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", ".\Solution Items", "{94644E31-5B17-492F-9586-08BBF9817C30}"
 	ProjectSection(SolutionItems) = preProject
 		CSharpTools.version = CSharpTools.version
 		CSharpTools.version.config = CSharpTools.version.config
@@ -11,25 +10,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		popper.config = popper.config
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ender", "Ender\Ender.csproj", "{AC21794C-3783-4048-913C-A9A4CEEC23B2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ender", ".\Ender\Ender.csproj", "{AC21794C-3783-4048-913C-A9A4CEEC23B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spacer", "Spacer\Spacer.csproj", "{6E761DAD-D768-4DF8-8938-FCF0F6F2B76C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spacer", ".\Spacer\Spacer.csproj", "{6E761DAD-D768-4DF8-8938-FCF0F6F2B76C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Strapper", "Strapper\Strapper.csproj", "{A7D06A02-DE03-4548-AA5D-51A1338F01A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Strapper", ".\Strapper\Strapper.csproj", "{A7D06A02-DE03-4548-AA5D-51A1338F01A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vamper", "Vamper\Vamper.csproj", "{92B08CD8-A9A8-4970-BFEF-DC3C2C49B73D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vamper", ".\Vamper\Vamper.csproj", "{92B08CD8-A9A8-4970-BFEF-DC3C2C49B73D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Projector", "Projector\Projector.csproj", "{103AAFD3-76EB-4F26-80B8-7EE552087E43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Projector", ".\Projector\Projector.csproj", "{103AAFD3-76EB-4F26-80B8-7EE552087E43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doozer", "Doozer\Doozer.csproj", "{5EDC7C7F-0A85-4A36-A4A0-2491CB99AE43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doozer", ".\Doozer\Doozer.csproj", "{5EDC7C7F-0A85-4A36-A4A0-2491CB99AE43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lindex", "Lindex\Lindex.csproj", "{40DB3FF7-EEB5-41D7-A1E2-1D82F7CD9976}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lindex", ".\Lindex\Lindex.csproj", "{40DB3FF7-EEB5-41D7-A1E2-1D82F7CD9976}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cleaner", "Cleaner\Cleaner.csproj", "{4004FE1F-D059-43B1-B3B5-B98A5E6AE4B9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cleaner", ".\Cleaner\Cleaner.csproj", "{4004FE1F-D059-43B1-B3B5-B98A5E6AE4B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Popper", "Popper\Popper.csproj", "{D215F02E-C781-40A5-B1F3-94DCCC366FAB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolBelt", "..\ToolBelt\ToolBelt\ToolBelt.csproj", "{2055D34D-3DF2-444B-937B-32CC1A6E11DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Popper", ".\Popper\Popper.csproj", "{D215F02E-C781-40A5-B1F3-94DCCC366FAB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +38,6 @@ Global
 		{103AAFD3-76EB-4F26-80B8-7EE552087E43}.Debug|x86.Build.0 = Debug|x86
 		{103AAFD3-76EB-4F26-80B8-7EE552087E43}.Release|x86.ActiveCfg = Release|x86
 		{103AAFD3-76EB-4F26-80B8-7EE552087E43}.Release|x86.Build.0 = Release|x86
-		{2055D34D-3DF2-444B-937B-32CC1A6E11DF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2055D34D-3DF2-444B-937B-32CC1A6E11DF}.Debug|x86.Build.0 = Debug|Any CPU
-		{2055D34D-3DF2-444B-937B-32CC1A6E11DF}.Release|x86.ActiveCfg = Release|Any CPU
-		{2055D34D-3DF2-444B-937B-32CC1A6E11DF}.Release|x86.Build.0 = Release|Any CPU
 		{4004FE1F-D059-43B1-B3B5-B98A5E6AE4B9}.Debug|x86.ActiveCfg = Debug|x86
 		{4004FE1F-D059-43B1-B3B5-B98A5E6AE4B9}.Debug|x86.Build.0 = Debug|x86
 		{4004FE1F-D059-43B1-B3B5-B98A5E6AE4B9}.Release|x86.ActiveCfg = Release|x86
@@ -78,83 +71,4 @@ Global
 		{D215F02E-C781-40A5-B1F3-94DCCC366FAB}.Release|x86.ActiveCfg = Release|x86
 		{D215F02E-C781-40A5-B1F3-94DCCC366FAB}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		Policies = $0
-		$0.DotNetNamingPolicy = $1
-		$1.DirectoryNamespaceAssociation = None
-		$1.ResourceNamePolicy = FileFormatDefault
-		$0.TextStylePolicy = $2
-		$2.FileWidth = 120
-		$2.TabsToSpaces = False
-		$2.NoTabsAfterNonTabs = True
-		$2.EolMarker = Unix
-		$2.inheritsSet = VisualStudio
-		$2.inheritsScope = text/plain
-		$2.scope = text/x-csharp
-		$0.CSharpFormattingPolicy = $3
-		$3.AnonymousMethodBraceStyle = NextLine
-		$3.PropertyBraceStyle = NextLine
-		$3.PropertyGetBraceStyle = NextLine
-		$3.PropertySetBraceStyle = NextLine
-		$3.EventBraceStyle = NextLine
-		$3.EventAddBraceStyle = NextLine
-		$3.EventRemoveBraceStyle = NextLine
-		$3.StatementBraceStyle = NextLine
-		$3.ElseNewLinePlacement = NewLine
-		$3.CatchNewLinePlacement = NewLine
-		$3.FinallyNewLinePlacement = NewLine
-		$3.WhileNewLinePlacement = NewLine
-		$3.BeforeMethodDeclarationParentheses = False
-		$3.BeforeMethodCallParentheses = False
-		$3.BeforeConstructorDeclarationParentheses = False
-		$3.BeforeIndexerDeclarationBracket = False
-		$3.BeforeDelegateDeclarationParentheses = False
-		$3.NewParentheses = False
-		$3.SpacesBeforeBrackets = False
-		$3.inheritsSet = Mono
-		$3.inheritsScope = text/x-csharp
-		$3.scope = text/x-csharp
-		$0.TextStylePolicy = $4
-		$4.FileWidth = 120
-		$4.NoTabsAfterNonTabs = True
-		$4.EolMarker = Unix
-		$4.inheritsSet = VisualStudio
-		$4.inheritsScope = text/plain
-		$4.scope = text/plain
-		$0.TextStylePolicy = $5
-		$5.FileWidth = 120
-		$5.NoTabsAfterNonTabs = True
-		$5.EolMarker = Unix
-		$5.inheritsSet = VisualStudio
-		$5.inheritsScope = text/plain
-		$5.scope = application/config+xml
-		$0.XmlFormattingPolicy = $6
-		$6.inheritsSet = Mono
-		$6.inheritsScope = application/xml
-		$6.scope = application/config+xml
-		$0.TextStylePolicy = $7
-		$7.FileWidth = 120
-		$7.NoTabsAfterNonTabs = True
-		$7.EolMarker = Unix
-		$7.inheritsSet = VisualStudio
-		$7.inheritsScope = text/plain
-		$7.scope = application/xml
-		$0.XmlFormattingPolicy = $8
-		$8.inheritsSet = Mono
-		$8.inheritsScope = application/xml
-		$8.scope = application/xml
-		$0.TextStylePolicy = $9
-		$9.FileWidth = 120
-		$9.NoTabsAfterNonTabs = True
-		$9.EolMarker = Unix
-		$9.inheritsSet = VisualStudio
-		$9.inheritsScope = text/plain
-		$9.scope = application/x-sh
-		$0.StandardHeader = $10
-		$10.Text = 
-		$10.IncludeInNewFiles = True
-		version = 1.0
-	EndGlobalSection
-EndGlobal
+Global

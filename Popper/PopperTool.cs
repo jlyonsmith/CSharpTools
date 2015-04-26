@@ -30,12 +30,8 @@ namespace Tools
     {
         [CommandLineArgument("help", ShortName="?", Description="Shows this help")]
         public bool ShowUsage { get; set; }
-		[CommandLineArgument("slndir", ShortName="s", Description="Specify solution directory.  Defaults to first parent directory containing .sln file.")]
+		[CommandLineArgument("slndir", ShortName="s", Description="Specify solution directory.  Defaults to searching for .sln from current directory.")]
 		public ParsedDirectoryPath SlnDir { get; set; }
-		#if DEBUG
-		[CommandLineArgument("test", ShortName="t", Description="Write .test files instead of overwriting the originals.")]
-		public bool Test { get; set; }
-		#endif
         [DefaultCommandLineArgument(Description="The case sensitive project name to swap.  This must be the same name used in NuGet and for the .csproj file name", ValueHint = "PROJECT_NAME")]
         public string ProjectName { get; set; }
 
@@ -147,28 +143,19 @@ namespace Tools
 
 				if (swapDirection == SwapDirection.ToLocalProject)
 				{
-					// Add enough configs to enable the project
-					foreach (var solutionConfig in slnDocument.SolutionConfigurations)
-					{
-						slnDocument.ProjectConfigurations.Add(new SlnProjectConfiguration
-						{
-							Guid = localCsprojDocument.ProjectGuid,
-							SolutionConfiguration = solutionConfig,
-							ProjectConfiguration = new SlnConfiguration 
-							{
-								Configuration = solutionConfig.Configuration,
-								Platform = localSlnDocument.SolutionConfigurations.Find(c => c.Configuration == solutionConfig.Configuration).Platform
-							},
-						});
-					}
+                    // Add the local project
+                    slnDocument.Projects.Add(new SlnProject
+                    {
+                        Name = ProjectName,
+                        Path = localCsprojPath,
+                        ProjectGuid = localCsprojDocument.ProjectGuid,
+                        TypeGuid = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}" // C# project
+                    });
 
-					slnDocument.Projects.Add(new SlnProject
-					{
-						Name = ProjectName,
-						Path = localCsprojPath,
-						ProjectGuid = localCsprojDocument.ProjectGuid,
-						TypeGuid = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}" // C# project
-					});
+					// Add the configs from the local project's solution
+                    var localProjectConfigs = localSlnDocument.ProjectConfigurations.Where(pc => pc.Guid == localCsprojDocument.ProjectGuid);
+
+					slnDocument.ProjectConfigurations.AddRange(localProjectConfigs);
 				}
 				else
 				{
@@ -186,26 +173,14 @@ namespace Tools
 
             if (!failed)
             {
-				ParsedPath filePath;
-
                 foreach (var pair in saveCsprojs)
                 {
-					filePath = pair.Key;
-
-					if (Test)
-						filePath = filePath.WithExtension(".test" + filePath.Extension);
-
-                    WriteMessage("Writing '{0}'", filePath);
-					pair.Value.Save(filePath);
+					WriteMessage("Writing '{0}'", pair.Key);
+					pair.Value.Save(pair.Key);
                 }
 
-				filePath = slnPath;
-
-				if (Test)
-					filePath = filePath.WithExtension(".test" + filePath.Extension);
-				
-				WriteMessage("Writing '{0}'", filePath);
-				slnDocument.Save(filePath);
+				WriteMessage("Writing '{0}'", slnPath);
+				slnDocument.Save(slnPath);
             }
 
             WriteMessage("Done");

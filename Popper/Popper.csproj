@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -36,6 +36,9 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="ToolBelt">
+      <HintPath>..\packages\ToolBelt.3.0.20416.0\lib\net45\ToolBelt.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -57,11 +60,5 @@
   <ItemGroup>
     <Folder Include="Test\" />
     <Folder Include="Test\Test\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\ToolBelt\ToolBelt\ToolBelt.csproj">
-      <Project>{2055D34D-3DF2-444B-937B-32CC1A6E11DF}</Project>
-      <Name>ToolBelt</Name>
-    </ProjectReference>
   </ItemGroup>
 </Project>
