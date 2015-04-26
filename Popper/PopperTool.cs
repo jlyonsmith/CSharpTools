@@ -105,7 +105,7 @@ namespace Tools
 
                 foreach (var project in slnDocument.Projects)
                 {
-					if (project.Name == ProjectName)
+					if (project.Name == ProjectName || project.TypeGuid != "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}")
 						continue;
 
 					var csprojPath = project.Path.MakeFullPath(slnPath);

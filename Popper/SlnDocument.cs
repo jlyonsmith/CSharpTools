@@ -152,12 +152,10 @@ namespace Tools
 				writer.Write("Microsoft Visual Studio Solution File, Format Version 12.00\r\n");
 				writer.Write("# Visual Studio 2012\r\n");
 
-				var csprojGuid = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
-
 				foreach (var project in this.projects)
 				{
 					writer.Write("Project(\"{0}\") = \"{1}\", \"{2}\", \"{3}\"\r\n{4}EndProject\r\n",
-						csprojGuid, project.Name, project.Path.MakeRelativePath(fileName).ToString("\\"), project.ProjectGuid, project.Content);
+						project.TypeGuid, project.Name, project.Path.MakeRelativePath(fileName).ToString("\\"), project.ProjectGuid, project.Content);
 				}
 
 				writer.Write("Global\r\n");

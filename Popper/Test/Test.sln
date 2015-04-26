@@ -1,9 +1,8 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{59A45A20-646F-4AB1-8574-ED42775D1C21}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", ".\Test\Test.csproj", "{59A45A20-646F-4AB1-8574-ED42775D1C21}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{C9AB45C0-6CDC-4188-AEFB-BF1A38173D84}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", ".\Solution Files", "{C9AB45C0-6CDC-4188-AEFB-BF1A38173D84}"
 	ProjectSection(SolutionItems) = preProject
 		popper.config = popper.config
 	EndProjectSection
@@ -19,6 +18,4 @@ Global
 		{59A45A20-646F-4AB1-8574-ED42775D1C21}.Release|x86.ActiveCfg = Release|x86
 		{59A45A20-646F-4AB1-8574-ED42775D1C21}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-	EndGlobalSection
-EndGlobal
+Global
