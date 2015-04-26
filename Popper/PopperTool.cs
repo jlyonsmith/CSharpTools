@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace Tools
 {
@@ -29,15 +30,14 @@ namespace Tools
     {
         [CommandLineArgument("help", ShortName="?", Description="Shows this help")]
         public bool ShowUsage { get; set; }
-        [CommandLineArgument("slndir", ShortName="s", Description="Specify solution directory.  Defaults to first parent directory containing .sln file.")]
-        public ParsedDirectoryPath SlnDir { get; set; }
+		[CommandLineArgument("slndir", ShortName="s", Description="Specify solution directory.  Defaults to first parent directory containing .sln file.")]
+		public ParsedDirectoryPath SlnDir { get; set; }
+		#if DEBUG
+		[CommandLineArgument("test", ShortName="t", Description="Write .test files instead of overwriting the originals.")]
+		public bool Test { get; set; }
+		#endif
         [DefaultCommandLineArgument(Description="The case sensitive project name to swap.  This must be the same name used in NuGet and for the .csproj file name", ValueHint = "PROJECT_NAME")]
         public string ProjectName { get; set; }
-
-        Regex slnProjectRegex = new Regex("Project\\(\".*?\"\\) = \"(?'name'.*?)\", \"(?'path'.*?)\", \"(?'guid'.*?)\"\r\nEndProject\r\n", 
-            RegexOptions.Multiline | RegexOptions.ExplicitCapture);
-        Regex csprojReferenceRegex = new Regex("\\s*<Reference Include=\"(?'name'.*?)\">\r\n\\s*<HintPath>(?'path'.*?)</HintPath>\r\n\\s*</Reference>\r\n", 
-            RegexOptions.Multiline | RegexOptions.ExplicitCapture);
 
         #region ITool
         public override void Execute()
@@ -55,129 +55,196 @@ namespace Tools
                 return;
             }
 
+            Dictionary<ParsedPath, CsprojDocument> saveCsprojs = null;
+            ParsedPath slnPath = null;
+            SlnDocument slnDocument = null;
+            bool failed = false;
+
             try
             {
-                var slnPath = GetSlnPath();
-                var popperConfigPath = slnPath.Directory.WithFileAndExtension("popper.config");
-                var popperConfig = ReadPopperConfig(popperConfigPath);
-                ParsedPath localCsproj;
+                slnPath = GetSlnPath();
 
-                if (!popperConfig.TryGetValue(ProjectName, out localCsproj))
+                var popperConfigPath = slnPath.Directory.WithFileAndExtension("popper.config");
+                var popperConfig = PopperDocument.Parse(popperConfigPath);
+                ParsedPath localCsprojPath;
+
+                if (!popperConfig.Projects.TryGetValue(ProjectName, out localCsprojPath))
                 {
                     WriteError("'{0}' does not contain a location for project '{1}'", popperConfigPath, ProjectName);
                     return;
                 }
 
-                if (!File.Exists(localCsproj))
+				localCsprojPath = localCsprojPath.MakeFullPath(popperConfigPath);
+
+                if (!File.Exists(localCsprojPath))
                 {
-                    WriteWarning("The project '{0}' does not exist at location '{1}'", ProjectName, localCsproj);
+                    WriteError("The project '{0}' does not exist at location '{1}'", ProjectName, localCsprojPath);
+                    return;
                 }
 
-                var slnContents = File.ReadAllText(slnPath);
-                var slnProjects = GetProjectsListedInSln(slnPath, slnContents);
-                var swapDirection = slnProjects.ContainsKey(this.ProjectName) ? SwapDirection.ToNuGet : SwapDirection.ToLocalProject;
+				var localCsprojDocument = CsprojDocument.Parse(localCsprojPath);
+
+                slnDocument = SlnDocument.Parse(slnPath);
+
+				var existingSlnProject = slnDocument.Projects.FirstOrDefault(p => p.Name == this.ProjectName);
+				var swapDirection = (existingSlnProject != null ? SwapDirection.ToNuGet : SwapDirection.ToLocalProject);
 
                 if (swapDirection == SwapDirection.ToLocalProject)
-                    WriteMessage("Swapping '{0}' to local project '{1}'", ProjectName, localCsproj);
-                else
-                    WriteMessage("Swapping '{0}' to NuGet");
-
-                foreach (var pair in slnProjects)
                 {
-                    var csprojFile = pair.Value;
-                    var csprojContents = File.ReadAllText(csprojFile);
+                    WriteMessage("Swapping '{0}' to local project '{1}'", ProjectName, localCsprojPath);
+                }
+                else
+                {
+                    WriteMessage("Swapping '{0}' to NuGet", ProjectName);
+                }
+
+                saveCsprojs = new Dictionary<ParsedPath, CsprojDocument>();
+
+                foreach (var project in slnDocument.Projects)
+                {
+					if (project.Name == ProjectName)
+						continue;
+
+					var csprojPath = project.Path.MakeFullPath(slnPath);
+                    var csprojDocument = CsprojDocument.Parse(csprojPath);
 
                     if (swapDirection == SwapDirection.ToLocalProject)
                     {
-                        RemoveNuGetReference(csprojContents);
-                        AddLocalProjectReference(csprojContents);
-                        AddGlobalSectionEntries(slnContents);
+						var count = csprojDocument.References.RemoveAll(r => r.Name == ProjectName);
+
+						if (count > 0)
+						{
+							// Add a ProjectReference to this .csproj
+							csprojDocument.ProjectReferences.Add(new CsprojProjectReference
+							{
+								Guid = localCsprojDocument.ProjectGuid,
+								Include = localCsprojPath,
+								Name = ProjectName
+							});
+							saveCsprojs[csprojPath] = csprojDocument;
+						}
                     }
                     else
                     {
-                        RemoveGlobalSectionEntries(slnContents);
-                        RemoveLocalProjectReference(csprojContents);
-                        AddNuGetReference(csprojFile, csprojContents);
-                    }
+						var count = csprojDocument.ProjectReferences.RemoveAll(r => r.Name == ProjectName);
 
-                    File.WriteAllText(csprojFile, csprojContents);
+						if (count > 0)
+						{
+							var nugetPath = FindNugetLibrary(slnPath, csprojPath);
+
+							csprojDocument.References.Add(new CsprojReference
+							{
+								Name = ProjectName,
+								HintPath = nugetPath.MakeRelativePath(csprojPath)
+							});
+							saveCsprojs[csprojPath] = csprojDocument;
+						}
+                    }
                 }
 
-                File.WriteAllText(slnPath, slnContents);
+				if (swapDirection == SwapDirection.ToLocalProject)
+				{
+					// Ensure solution has the local project's config's
+					foreach (var configPlatform in localCsprojDocument.Configurations)
+					{
+						if (slnDocument.SolutionConfigurations.Find(cp => 
+						{
+							return cp.Configuration == configPlatform.Configuration && 
+								cp.Platform == configPlatform.Platform;
+						}) == null)
+						{
+							slnDocument.SolutionConfigurations.Add(new SlnConfiguration
+							{
+								Configuration = configPlatform.Configuration,
+								Platform = configPlatform.Platform
+							});
+						}
+					}
+
+					// Add enough configs to enable the project
+					foreach (var solutionConfig in slnDocument.SolutionConfigurations)
+					{
+						slnDocument.ProjectConfigurations.Add(new SlnProjectConfiguration
+						{
+							Guid = localCsprojDocument.ProjectGuid,
+							SolutionConfiguration = solutionConfig,
+							ProjectConfiguration = new CsprojConfiguration 
+							{
+								Configuration = solutionConfig.Configuration,
+								Platform = localCsprojDocument.Configurations[0].Platform
+							},
+						});
+					}
+
+					slnDocument.Projects.Add(new SlnProject
+					{
+						Name = ProjectName,
+						Path = localCsprojPath,
+						ProjectGuid = localCsprojDocument.ProjectGuid,
+						TypeGuid = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}" // C# project
+					});
+				}
+				else
+				{
+					slnDocument.ProjectConfigurations.RemoveAll(pc => pc.Guid == localCsprojDocument.ProjectGuid);
+					slnDocument.Projects.Remove(existingSlnProject);
+				}
+
             }
             catch (Exception ex)
             {
+                failed = true;
                 WriteError(ex.Message);
             }
+
+
+            if (!failed)
+            {
+				ParsedPath filePath;
+
+                foreach (var pair in saveCsprojs)
+                {
+					filePath = pair.Key;
+
+					if (Test)
+						filePath = filePath.WithExtension(".test" + filePath.Extension);
+
+                    WriteMessage("Writing '{0}'", filePath);
+					pair.Value.Save(filePath);
+                }
+
+				filePath = slnPath;
+
+				if (Test)
+					filePath = filePath.WithExtension(".test" + filePath.Extension);
+				
+				WriteMessage("Writing '{0}'", filePath);
+				slnDocument.Save(filePath);
+            }
+
+            WriteMessage("Done");
         }
 
         #endregion 
 
-        private void RemoveNuGetReference(string csprojContents)
+        private ParsedPath FindNugetLibrary(ParsedPath slnPath, ParsedPath csprojPath)
         {
-            var name = ProjectName;
+            var projectName = ProjectName;
+            var packagesConfigPath = csprojPath.WithFileAndExtension("packages.config");
 
-            csprojReferenceRegex.Replace(csprojContents, m => 
-            {
-                if (m.Groups["name"].Value == name)
-                    return "";
-                else
-                    return m.Groups[0];
-            });
-        }
+            if (!File.Exists(packagesConfigPath))
+                throw new PopperToolExeception("Cannot find '{0}'".InvariantFormat(packagesConfigPath));
 
-        private void AddNuGetReference(ParsedPath csprojFile, string csprojContents)
-        {
-        }
+            var doc = XDocument.Parse(File.ReadAllText(packagesConfigPath));
+            var element = doc.Root.Elements("package").Where(e => e.Attribute("id").Value == projectName).FirstOrDefault();
 
-        private void AddLocalProjectReference(string csprojContents)
-        {
-        }
+            if (element == null)
+                throw new PopperToolExeception("Cannot find project '{0}' in '{1}'".InvariantFormat(projectName, packagesConfigPath));
 
-        private void RemoveLocalProjectReference(string csprojContents)
-        {
-        }
+            var s = "packages/{0}.{1}/lib/{2}/{0}.dll".InvariantFormat(
+                projectName, element.Attribute("version").Value, element.Attribute("targetFramework").Value);
 
-        private void AddGlobalSectionEntries(string slnContents)
-        {
-        }
-
-        private void RemoveGlobalSectionEntries(string slnContents)
-        {
-        }
-
-        private Dictionary<string, ParsedPath> GetProjectsListedInSln(ParsedPath slnPath, string slnContents)
-        {
-            var matches = slnProjectRegex.Matches(slnContents);
-            var projects = new Dictionary<string, ParsedPath>();
-
-            foreach (Match match in matches)
-            {
-                projects.Add(match.Groups["name"].Value, new ParsedPath(match.Groups["path"].Value, PathType.File).MakeFullPath(slnPath));
-            }
-
-            return projects;
-        }
-
-        private Dictionary<string, ParsedPath> ReadPopperConfig(ParsedPath popperConfigPath)
-        {
-            if (!File.Exists(popperConfigPath))
-                throw new PopperToolExeception("'{0}' file not found.  Stopping.".CultureFormat(popperConfigPath));
-
-            var doc = XDocument.Parse(File.ReadAllText(popperConfigPath));
-
-            try
-            {
-                return doc.Root.Elements("Project").ToDictionary(x => x.Attribute("Name").Value, x =>
-                {
-                    return new ParsedPath(StringUtility.ReplaceTags(x.Attribute("ProjectFile").Value, "$(", ")", 
-                        Environment.GetEnvironmentVariables(), TaggedStringOptions.ThrowOnUnknownTags), PathType.File);
-                });
-            }
-            catch (Exception ex)
-            {
-                throw new PopperToolExeception("Unable to read configuration file", ex);
-            }
+            return slnPath.VolumeAndDirectory.Append(s , PathType.File);
         }
 
         private ParsedPath GetSlnPath()
