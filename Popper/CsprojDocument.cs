@@ -52,12 +52,12 @@ namespace Tools
 
 			foreach (var refElem in refElems)
 			{
-				var hintPath = refElem.Attribute("HintPath");
+				var hintPath = refElem.Element(ns + "HintPath");
 
 				refs.Add(new CsprojReference 
 				{ 
 					Name = refElem.Attribute("Include").Value, 
-					HintPath = hintPath != null ? new ParsedPath(hintPath.Value, PathType.File).MakeFullPath(csprojPath) : null 
+                    HintPath = (hintPath != null ? new ParsedPath(hintPath.Value, PathType.File).MakeFullPath(csprojPath) : null)
 				});
 			}
 

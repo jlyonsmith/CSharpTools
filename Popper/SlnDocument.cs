@@ -149,13 +149,21 @@ namespace Tools
 		{
 			using (var writer = new StreamWriter(fileName))
 			{
-				writer.Write("Microsoft Visual Studio Solution File, Format Version 12.00\r\n");
+				writer.Write("\r\nMicrosoft Visual Studio Solution File, Format Version 12.00\r\n");
 				writer.Write("# Visual Studio 2012\r\n");
 
 				foreach (var project in this.projects)
 				{
+                    var projectPath = project.Path.MakeRelativePath(fileName).ToString("\\");
+                    var prefix = ".\\";
+
+                    if (projectPath.StartsWith(prefix))
+                        projectPath = projectPath.Substring(prefix.Length);
+
 					writer.Write("Project(\"{0}\") = \"{1}\", \"{2}\", \"{3}\"\r\n{4}EndProject\r\n",
-						project.TypeGuid, project.Name, project.Path.MakeRelativePath(fileName).ToString("\\"), project.ProjectGuid, project.Content);
+						project.TypeGuid, project.Name, 
+                        projectPath, 
+                        project.ProjectGuid, project.Content);
 				}
 
 				writer.Write("Global\r\n");
@@ -187,12 +195,12 @@ namespace Tools
 
 				foreach (var globalSection in this.globalSections)
 				{
-					writer.Write("\tGlobalSection({0})\r\n", globalSection.Name);
+                    writer.Write("\tGlobalSection({0}) = {1}\r\n", globalSection.Name, globalSection.Order);
 					writer.Write(globalSection.Content);
 					writer.Write("\tEndGlobalSection\r\n");
 				}
 
-				writer.Write("Global\r\n");
+				writer.Write("EndGlobal\r\n");
 			}
 		}
 

@@ -3,13 +3,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{6E761DAD-D768-4DF8-8938-FCF0F6F2B76C}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Tools</RootNamespace>
     <AssemblyName>Spacer</AssemblyName>
-    <ReleaseVersion>1.0</ReleaseVersion>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
@@ -40,7 +37,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="ToolBelt">
-      <HintPath>..\packages\ToolBelt.2.0.11010.0\lib\net45\ToolBelt.dll</HintPath>
+      <HintPath>..\packages\ToolBelt.4.0.10427.1\lib\net45\ToolBelt.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

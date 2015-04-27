@@ -3,13 +3,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{D215F02E-C781-40A5-B1F3-94DCCC366FAB}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Tools</RootNamespace>
     <AssemblyName>Popper</AssemblyName>
-    <ReleaseVersion>1.0</ReleaseVersion>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
@@ -37,7 +34,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="ToolBelt">
-      <HintPath>..\packages\ToolBelt.3.0.20416.0\lib\net45\ToolBelt.dll</HintPath>
+      <HintPath>..\packages\ToolBelt.4.0.10427.1\lib\net45\ToolBelt.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -50,12 +47,12 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="Test\popper.config" />
     <None Include="Test\Test.sln" />
     <None Include="Test\Test\Test.csproj" />
     <None Include="Test\Test\Program.cs" />
     <None Include="Test\Test\packages.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Test\" />

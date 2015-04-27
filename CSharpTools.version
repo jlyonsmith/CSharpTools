@@ -14,11 +14,11 @@
     <File>makefile</File>
     <File>Scratch/CSharpTools.version.txt</File>
   </Files>
-  <Major>2</Major>
-  <Minor>2</Minor>
-  <Build>20426</Build>
+  <Major>3</Major>
+  <Minor>0</Minor>
+  <Build>0</Build>
   <Revision>0</Revision>
-  <StartYear>2014</StartYear>
+  <StartYear>2015</StartYear>
   <Company>John Lyon-Smith</Company>
   <Product>CSharpTools</Product>
   <Copyright>Copyright (c) 2015, John Lyon-Smith</Copyright>

@@ -1,6 +1,7 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", ".\Solution Items", "{94644E31-5B17-492F-9586-08BBF9817C30}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{94644E31-5B17-492F-9586-08BBF9817C30}"
 	ProjectSection(SolutionItems) = preProject
 		CSharpTools.version = CSharpTools.version
 		CSharpTools.version.config = CSharpTools.version.config
@@ -8,25 +9,26 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", ".\Solutio
 		template.sh = template.sh
 		README.md = README.md
 		popper.config = popper.config
+		csharptools = csharptools
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ender", ".\Ender\Ender.csproj", "{AC21794C-3783-4048-913C-A9A4CEEC23B2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ender", "Ender\Ender.csproj", "{AC21794C-3783-4048-913C-A9A4CEEC23B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spacer", ".\Spacer\Spacer.csproj", "{6E761DAD-D768-4DF8-8938-FCF0F6F2B76C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spacer", "Spacer\Spacer.csproj", "{6E761DAD-D768-4DF8-8938-FCF0F6F2B76C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Strapper", ".\Strapper\Strapper.csproj", "{A7D06A02-DE03-4548-AA5D-51A1338F01A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Strapper", "Strapper\Strapper.csproj", "{A7D06A02-DE03-4548-AA5D-51A1338F01A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vamper", ".\Vamper\Vamper.csproj", "{92B08CD8-A9A8-4970-BFEF-DC3C2C49B73D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vamper", "Vamper\Vamper.csproj", "{92B08CD8-A9A8-4970-BFEF-DC3C2C49B73D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Projector", ".\Projector\Projector.csproj", "{103AAFD3-76EB-4F26-80B8-7EE552087E43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Projector", "Projector\Projector.csproj", "{103AAFD3-76EB-4F26-80B8-7EE552087E43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doozer", ".\Doozer\Doozer.csproj", "{5EDC7C7F-0A85-4A36-A4A0-2491CB99AE43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doozer", "Doozer\Doozer.csproj", "{5EDC7C7F-0A85-4A36-A4A0-2491CB99AE43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lindex", ".\Lindex\Lindex.csproj", "{40DB3FF7-EEB5-41D7-A1E2-1D82F7CD9976}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lindex", "Lindex\Lindex.csproj", "{40DB3FF7-EEB5-41D7-A1E2-1D82F7CD9976}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cleaner", ".\Cleaner\Cleaner.csproj", "{4004FE1F-D059-43B1-B3B5-B98A5E6AE4B9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cleaner", "Cleaner\Cleaner.csproj", "{4004FE1F-D059-43B1-B3B5-B98A5E6AE4B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Popper", ".\Popper\Popper.csproj", "{D215F02E-C781-40A5-B1F3-94DCCC366FAB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Popper", "Popper\Popper.csproj", "{D215F02E-C781-40A5-B1F3-94DCCC366FAB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,4 +73,6 @@ Global
 		{D215F02E-C781-40A5-B1F3-94DCCC366FAB}.Release|x86.ActiveCfg = Release|x86
 		{D215F02E-C781-40A5-B1F3-94DCCC366FAB}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
-Global
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal
