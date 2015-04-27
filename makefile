@@ -58,7 +58,7 @@ $(zipfile): $(foreach X,$(tools),$(SCRATCH)/$(X)/$(X).exe) \
 			$(foreach X,$(markdown),$(SCRATCH)/$(X))
 	tar -cvz -C $(SCRATCH) -f $(zipfile) ./
 	openssl sha1 $(zipfile)
-#	aws s3 cp $(zipfile) s3://jlyonsmith/ --profile jamoki --acl public-read
+	@echo "aws s3 cp $(zipfile) s3://jlyonsmith/ --profile jamoki --acl public-read"
 
 $(foreach X,$(tools),$(eval $(call copyrule,$(SCRATCH)/$(X)/$(X).exe,$(X)/bin/$(CONFIG)/$(X).exe)))
 $(foreach X,$(tools),$(eval $(call copyrule,$(SCRATCH)/$(X)/ToolBelt.dll,$(X)/bin/$(CONFIG)/ToolBelt.dll)))

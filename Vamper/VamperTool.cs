@@ -73,7 +73,7 @@ namespace Tools
             
             if (String.IsNullOrEmpty(versionFile))
             {
-                var files = DirectoryUtility.GetFiles(versionFile, SearchScope.RecurseParentDirectories);
+                var files = DirectoryUtility.GetFiles(new ParsedFilePath("*.version"), SearchScope.RecurseParentDirectories);
             
                 if (files.Count == 0)
                 {
@@ -90,7 +90,7 @@ namespace Tools
             }
             
             string projectName = versionFile.File;
-            var versionConfigFile = versionFile.WithExtension(".config");
+            var versionConfigFile = versionFile.WithExtension(".version.config");
 
             WriteMessage("Version file is '{0}'", versionFile);
             WriteMessage("Version config file is '{0}'", versionConfigFile);
