@@ -10,7 +10,7 @@ env:
   - EnableNuGetPackageRestore=true 
 
 install:
-  - nuget restore ToolBelt.sln
+  - nuget restore CSharpTools.sln
 
 script:
  - xbuild /property:Configuration=Debug CSharpTools.sln
