@@ -12,4 +12,10 @@ A collection of useful command line development tools for C# programmers written
 
 __Strapper__ is useful in conjunction with my [ToolBelt](https://github.com/jlyonsmith/ToolBelt) project for generating strongly typed string resource wrappers.
 
+## Installation
+
+The latest version of the tools can be installed using [HomeBrew](http://brew.sh) with:
+
+    brew install https://gist.githubusercontent.com/jlyonsmith/8495038/raw/1da4633ebd9376b7c57f166f1b910ab226442812/csharptools.rb
+
 [![Build Status](https://travis-ci.org/jlyonsmith/CSharpTools.svg?branch=master)](https://travis-ci.org/jlyonsmith/CSharpTools)
