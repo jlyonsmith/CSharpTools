@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Version BuildValueType="FullDate">
+  <Files>
+    <File>Info.plist</File>
+  </Files>
+  <Major>2</Major>
+  <Minor>0</Minor>
+  <Patch>0</Patch>
+  <Build>20150708</Build>
+  <Revision>1</Revision>
+  <TimeZone>US/Pacific</TimeZone>
+  <Company>Pretend Company</Company>
+  <Product>Pretend Product</Product>
+  <Copyright>Copyright (c) 2015, Pretend Person</Copyright>
+</Version>

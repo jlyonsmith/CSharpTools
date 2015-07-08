@@ -11,6 +11,13 @@ using ToolBelt;
 
 namespace Tools
 {
+    public enum BuildValueType 
+    {
+        Incremental,
+        JDate,
+        FullDate
+    }
+
     [CommandLineTitle("Version Stamper")]
     [CommandLineDescription("Stamps versions into project files")]
     [CommandLineCopyright("Copyright (c) John Lyon-Smith 2014")]
@@ -32,8 +39,19 @@ namespace Tools
         public ParsedPath VersionFile { get; set; }
 
         Dictionary<string, string> tags = new Dictionary<string, string>();
-        private IEnumerable<string> fileList;
+        IEnumerable<string> fileList;
+        BuildValueType buildValueType;
+        TimeZoneInfo timeZoneInfo = TimeZoneInfo.Utc;
+        DateTime today;
 
+        public BuildValueType BuildValueType 
+        {
+            get { return buildValueType; }
+        }
+        public TimeZoneInfo TimeZone 
+        {
+            get { return timeZoneInfo; }
+        }
         public int Major
         {
             get { return int.Parse(tags["Major"]); }
@@ -43,6 +61,19 @@ namespace Tools
         {
             get { return int.Parse(tags["Minor"]); }
             set { tags["Minor"] = value.ToString(); }
+        }
+        public int Patch
+        {
+            get 
+            {
+                string patch;
+
+                if (tags.TryGetValue("Patch", out patch))
+                    return int.Parse(patch);
+                else
+                    return 0;
+            }
+            set { tags["Patch"] = value.ToString(); }
         }
         public int Build
         {
@@ -56,7 +87,15 @@ namespace Tools
         }
         public int StartYear
         {
-            get { return int.Parse(tags["StartYear"]); }
+            get 
+            { 
+                string startYear;
+
+                if (tags.TryGetValue("StartYear", out startYear))
+                    return int.Parse(startYear);
+                else
+                    return this.today.Year;
+            }
             set { tags["StartYear"] = value.ToString(); }
         }
 
@@ -105,26 +144,56 @@ namespace Tools
             {
                 Major = 1;
                 Minor = 0;
+                Patch = 0;
                 Build = 0;
                 Revision = 0;
                 StartYear = DateTime.Now.Year;
 
                 fileList = new string[] { };
             }
-            
-            int jBuild = ProjectDate(StartYear);
-            
-            if (Build != jBuild)
+
+            switch (buildValueType)
             {
+            case BuildValueType.JDate:
+                int jDateBuild = GetJDate();
+                
+                if (Build != jDateBuild)
+                {
+                    Revision = 0;
+                    Build = jDateBuild;
+                }
+                else
+                {
+                    Revision++;
+                }
+                break;
+            case BuildValueType.FullDate:
+                int fullDateBuild = GetFullDate();
+
+                if (Build != fullDateBuild)
+                {
+                    Revision = 0;
+                    Build = fullDateBuild;
+                }
+                else
+                {
+                    Revision++;
+                }
+                break;
+            case BuildValueType.Incremental:
+                Build++;
                 Revision = 0;
-                Build = jBuild;
-            }
-            else
-            {
-                Revision++;
+                break;
             }
 
-            WriteMessage("New version {0} be {1}.{2}.{3}.{4}", this.DoUpdate ? "will" : "would", Major, Minor, Build, Revision);
+            StringBuilder sb = new StringBuilder("Version data is:");
+
+            foreach (var pair in tags)
+            {
+                sb.AppendFormat("\n  {0}=\"{1}\"", pair.Key, pair.Value);
+            }
+
+            WriteMessage(sb.ToString());
            
             if (this.DoUpdate)
                 WriteMessage("Updating version information:");
@@ -177,7 +246,8 @@ namespace Tools
                             {
                                 string contents = File.ReadAllText(path);
     
-                                contents = Regex.Replace(contents, update.Item1, update.Item2);
+                                contents = Regex.Replace(contents, update.Item1, update.Item2, 
+                                    RegexOptions.Multiline | RegexOptions.ExplicitCapture);
 
                                 File.WriteAllText(path, contents);
                             }
@@ -247,17 +317,42 @@ namespace Tools
         private bool ReadVersionFile(ParsedPath versionFileName)
         {
             XDocument versionDoc = XDocument.Load(versionFileName);
+            var buildValueTypeAttr = versionDoc.Root.Attribute("BuildValueType");
+
+            if (buildValueTypeAttr == null)
+            {
+                this.buildValueType = BuildValueType.JDate;
+            }
+            else
+            {
+                this.buildValueType = (BuildValueType)Enum.Parse(typeof(BuildValueType), buildValueTypeAttr.Value, ignoreCase: true);
+            }
 
             tags = versionDoc.Root.Elements().Where(x => x.Name != "Files").ToDictionary<XElement, string, string>(
                 x => x.Name.ToString(), x => x.Value);
 
             if (!tags.ContainsKey("Major") || !tags.ContainsKey("Minor") || 
-                !tags.ContainsKey("Build") || !tags.ContainsKey("Revision") || 
-                !tags.ContainsKey("StartYear"))
+                !tags.ContainsKey("Build") || !tags.ContainsKey("Revision"))
             {
-                WriteError("Version file must at least contain Major, Minor, Build, Revision and StartYear tags");
+                WriteError("Version file must at least contain at least Major, Minor, Build, Revision tags");
                 return false;
             }
+
+            string timeZoneId; 
+
+            if (tags.TryGetValue("TimeZone", out timeZoneId))
+            {
+                try
+                {
+                    this.timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                }
+                catch (Exception ex)
+                {
+                    throw new ApplicationException("TimeZone '{0}' was not found".CultureFormat(timeZoneId), ex);
+                }
+            }
+
+            this.today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, this.timeZoneInfo);
 
             var filesNode = versionDoc.Root.Element("Files");
 
@@ -276,6 +371,7 @@ namespace Tools
         {
             XElement doc = 
                 new XElement("Version",
+                    new XAttribute("BuildValueType", this.buildValueType.ToString()),
                     new XElement("Files", fileList.Select(f => new XElement("File", f)).ToArray()),
                     tags.Select(t => new XElement(t.Key, t.Value)).ToArray()
                 );
@@ -283,11 +379,14 @@ namespace Tools
             doc.Save(versionFileName);
         }
 
-        static private int ProjectDate(int startYear)
+        private int GetFullDate()
         {
-            DateTime today = DateTime.Today;
-            
-            return (((today.Year - startYear + 1) * 10000) + (today.Month * 100) + today.Day);
+            return today.Year * 10000 + today.Month * 100 + today.Day;
+        }
+
+        private int GetJDate()
+        {
+            return (((today.Year - this.StartYear + 1) * 10000) + (today.Month * 100) + today.Day);
         }
     }
 }

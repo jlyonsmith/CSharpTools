@@ -48,11 +48,18 @@
   <ItemGroup>
     <Folder Include="Properties\" />
     <Folder Include="Test\" />
+    <Folder Include="Test\JDate\" />
+    <Folder Include="Test\FullDate\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Default.version.config" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Test\JDate\Test.version" />
+    <None Include="Test\JDate\Test.version.config" />
+    <None Include="Test\FullDate\Test.version" />
+    <None Include="Test\FullDate\Test.version.config" />
+    <None Include="Test\FullDate\Info.plist" />
   </ItemGroup>
 </Project>
