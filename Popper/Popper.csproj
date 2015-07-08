@@ -34,7 +34,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="ToolBelt">
-      <HintPath>..\packages\ToolBelt.4.0.10427.1\lib\net45\ToolBelt.dll</HintPath>
+      <HintPath>..\packages\ToolBelt.4.0.10611.1\lib\net45\ToolBelt.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

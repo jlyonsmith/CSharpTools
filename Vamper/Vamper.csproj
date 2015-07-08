@@ -36,7 +36,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="ToolBelt">
-      <HintPath>..\packages\ToolBelt.4.0.10427.1\lib\net45\ToolBelt.dll</HintPath>
+      <HintPath>..\packages\ToolBelt.4.0.10611.1\lib\net45\ToolBelt.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -55,11 +55,11 @@
     <EmbeddedResource Include="Default.version.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="Test\JDate\Test.version" />
     <None Include="Test\JDate\Test.version.config" />
     <None Include="Test\FullDate\Test.version" />
     <None Include="Test\FullDate\Test.version.config" />
     <None Include="Test\FullDate\Info.plist" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
