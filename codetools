@@ -1,5 +1,5 @@
 #!/bin/bash
-# Output a list of all the CSharpTools
+# Output a list of all the CodeTools
 echo "cleaner   - Cleans C# project directories"
 echo "doozer    - Displays all TODO's in all C# files"
 echo "ender     - Changes line endings of text files"

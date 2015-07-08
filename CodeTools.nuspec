@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package >
   <metadata>
-    <id>CSharpTools</id>
-    <version>3.0.10708.1</version>
+    <id>CodeTools</id>
+    <version>3.0.10708.2</version>
     <authors>jlyonsmith</authors>
     <owners>jlyonsmith</owners>
     <language>en-US</language>
     <licenseUrl>http://github.com/jlyonsmith/CSharpTools/blob/master/LICENSE.md</licenseUrl>
     <projectUrl>http://github.com/jlyonsmith/CSharpTools</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>A collection of tools for working with C# and other code</description>
-    <releaseNotes>This is the first official NuGet release. It is targeted and tested for Mono on OSX &amp; Linux systems only.</releaseNotes>
-    <copyright>Copyright (C) 2014 John Lyon-Smith</copyright>
+    <description>A collection of tools for maintaining source code</description>
+    <releaseNotes>Re-release of the project under the new name CodeTools.</releaseNotes>
+    <copyright>Copyright (C) 2015 John Lyon-Smith</copyright>
     <tags>version todo project copy line index ending space tab cr lf mono osx linux</tags>
   </metadata>
   <files>
@@ -22,5 +22,7 @@
     <file src="Lindex/bin/Release/Lindex.exe" target="tools" /> 
     <file src="Ender/bin/Release/Ender.exe" target="tools" /> 
     <file src="Spacer/bin/Release/Spacer.exe" target="tools" /> 
+    <file src="Cleaner/bin/Release/Cleaner.exe" target="tools" /> 
+    <file src="Popper/bin/Release/Popper.exe" target="tools" /> 
   </files>
 </package>

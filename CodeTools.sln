@@ -3,13 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{94644E31-5B17-492F-9586-08BBF9817C30}"
 	ProjectSection(SolutionItems) = preProject
-		CSharpTools.version = CSharpTools.version
-		CSharpTools.version.config = CSharpTools.version.config
 		makefile = makefile
 		template.sh = template.sh
 		README.md = README.md
 		popper.config = popper.config
-		csharptools = csharptools
+		codetools = codetools
+		CodeTools.version = CodeTools.version
+		CodeTools.version.config = CodeTools.version.config
+		CodeTools.nuspec = CodeTools.nuspec
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ender", "Ender\Ender.csproj", "{AC21794C-3783-4048-913C-A9A4CEEC23B2}"

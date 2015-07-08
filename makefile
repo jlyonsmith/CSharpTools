@@ -2,10 +2,10 @@ CONFIG?=Release
 PREFIX?=prefix
 PREFIX:=$(abspath $(PREFIX))
 VERSION=3.0.10708
-PROJECT=CSharpTools
+PROJECT=CodeTools
 SCRATCH=scratch
 tools=Doozer Ender Lindex Spacer Strapper Vamper Cleaner Projector Popper
-otherfiles=makefile template.sh csharptools
+otherfiles=makefile template.sh codetools
 markdown=README.md LICENSE.md
 lc=$(shell echo $(1) | tr A-Z a-z)
 zipfile=$(PROJECT)-$(VERSION).tar.gz
@@ -70,7 +70,7 @@ $(foreach X,$(markdown),$(eval $(call copyrule,$(SCRATCH)/$(X),$(X))))
 .PHONY: install
 install: $(PREFIX)/bin \
 		 $(PREFIX)/lib \
-		 $(PREFIX)/bin/csharptools \
+		 $(PREFIX)/bin/codetools \
 		 $(foreach X,$(tools),$(PREFIX)/bin/$(call lc, $(X)))
 ifdef HOMEBREW
 install: $(foreach X,$(markdown),$(PREFIX)/$(X))
@@ -81,8 +81,8 @@ $(PREFIX)/bin $(PREFIX)/lib:
 
 $(foreach X,$(tools),$(eval $(call mkscriptrule,$(X))))
 
-$(PREFIX)/bin/csharptools: csharptools 
-	cp csharptools $@
+$(PREFIX)/bin/codetools: codetools 
+	cp codetools $@
 	chmod u+x $@
 
 ifdef HOMEBREW
