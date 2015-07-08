@@ -9,6 +9,8 @@ A collection of useful command line development tools for source code maintenanc
 - __Lindex__ generates a line index for text base log files
 - __Projector__ clones a project and renames and re-guids the project files
 - __Popper__ swaps a project back and forth between a NuGet and local project references
+- __Cleaner__ removes all intermediate and build files from .sln based project
+- __Spacer__ fixes spaces and tabs in source code and other text files
 
 ## Installation
 
