@@ -3,15 +3,15 @@ language: csharp
 mono:
   - latest
 
-solution: CodeTools.sln
+solution: CSharpTools.sln
 
 env:
  global:
   - EnableNuGetPackageRestore=true
 
 install:
-  - nuget restore CodeTools.sln
+  - nuget restore CSharpTools.sln
 
 script:
- - xbuild /property:Configuration=Debug CodeTools.sln
- - xbuild /property:Configuration=Release CodeTools.sln
+ - xbuild /property:Configuration=Debug CSharpTools.sln
+ - xbuild /property:Configuration=Release CSharpTools.sln
