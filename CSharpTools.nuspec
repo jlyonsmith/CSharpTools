@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package >
   <metadata>
-    <id>CodeTools</id>
-    <version>3.0.10708.2</version>
+    <id>CSharpTools</id>
+    <version>3.0.10807.0</version>
     <authors>jlyonsmith</authors>
     <owners>jlyonsmith</owners>
     <language>en-US</language>
     <licenseUrl>http://github.com/jlyonsmith/CSharpTools/blob/master/LICENSE.md</licenseUrl>
     <projectUrl>http://github.com/jlyonsmith/CSharpTools</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>A collection of tools for maintaining source code</description>
-    <releaseNotes>Re-release of the project under the new name CodeTools.</releaseNotes>
+    <description>A collection of tools for maintaining C# source code</description>
+    <releaseNotes>Bug fix release.</releaseNotes>
     <copyright>Copyright (C) 2015 John Lyon-Smith</copyright>
-    <tags>version todo project copy line index ending space tab cr lf mono osx linux</tags>
+    <tags>todo project copy index mono osx linux</tags>
   </metadata>
   <files>
     <file src="Strapper/bin/Release/Strapper.exe" target="tools" /> 

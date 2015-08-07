@@ -16,6 +16,6 @@ A collection of useful command line development tools for source code maintenanc
 
 The latest version of the tools can be installed using [HomeBrew](http://brew.sh) with:
 
-    brew install https://gist.githubusercontent.com/jlyonsmith/288321e7dec8520761c2/raw/45b0b2a9c21fa088c8d6f375b37f11cf28bd923c/codetools.rb
+    brew install https://gist.githubusercontent.com/jlyonsmith/288321e7dec8520761c2/raw/45b0b2a9c21fa088c8d6f375b37f11cf28bd923c/csharptools.rb
 
-[![Build Status](https://travis-ci.org/jlyonsmith/CodeTools.svg?branch=master)](https://travis-ci.org/jlyonsmith/CodeTools)
+[![Build Status](https://travis-ci.org/jlyonsmith/CSharpTools.svg?branch=master)](https://travis-ci.org/jlyonsmith/CSharpTools)

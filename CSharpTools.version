@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Version>
+<Version BuildValueType="JDate">
   <Files>
     <File>Ender/Properties/AssemblyInfo.cs</File>
     <File>Spacer/Properties/AssemblyInfo.cs</File>
@@ -10,16 +10,16 @@
     <File>Doozer/Properties/AssemblyInfo.cs</File>
     <File>Cleaner/Properties/AssemblyInfo.cs</File>
     <File>Popper/Properties/AssemblyInfo.cs</File>
-    <File>CodeTools.nuspec</File>
+    <File>CSharpTools.nuspec</File>
     <File>makefile</File>
-    <File>Scratch/CodeTools.version.txt</File>
+    <File>Scratch/CSharpTools.version.txt</File>
   </Files>
   <Major>3</Major>
   <Minor>0</Minor>
-  <Build>10708</Build>
-  <Revision>2</Revision>
+  <Build>10807</Build>
+  <Revision>0</Revision>
   <StartYear>2015</StartYear>
   <Company>John Lyon-Smith</Company>
-  <Product>CodeTools</Product>
+  <Product>CSharpTools</Product>
   <Copyright>Copyright (c) 2015, John Lyon-Smith</Copyright>
 </Version>
